@@ -1502,10 +1502,25 @@
 
         <div class="section-heading"><span>Residence</span></div>
         <div class="field-row">
-          <div class="field">
-            <label>Residential Area / Town</label>
-            <input type="text" name="area" placeholder="e.g. Adum, Kumasi">
+          <div class="field" id="f-place-live">
+            <label>Place You Live <span class="req">*</span></label>
+            <input type="text" name="place_live" placeholder="e.g. Adum, Bantama, Suame">
+            <div class="field-error">Please enter where you live</div>
           </div>
+          <div class="field" id="f-house-number">
+            <label>House Number <span class="req">*</span></label>
+            <input type="text" name="house_number" placeholder="e.g. No. 14, Block C">
+            <div class="field-error">Please enter your house number</div>
+          </div>
+        </div>
+        <div class="field-row single">
+          <div class="field" id="f-landmark">
+            <label>Direction / Nearest Landmark <span class="req">*</span></label>
+            <input type="text" name="landmark" placeholder="e.g. Behind Kejetia Market, Opposite Melcom, Near Ashanti Mall">
+            <div class="field-error">Please provide a direction or landmark</div>
+          </div>
+        </div>
+        <div class="field-row">
           <div class="field">
             <label>Region</label>
             <select name="region">
@@ -1518,11 +1533,9 @@
               <option>Western North</option>
             </select>
           </div>
-        </div>
-        <div class="field-row single">
           <div class="field">
-            <label>Digital Address / Landmark</label>
-            <input type="text" name="digital_address" placeholder="e.g. AK-123-4567 or Near Kejetia market">
+            <label>Digital Address (Ghana Post GPS)</label>
+            <input type="text" name="digital_address" placeholder="e.g. AK-123-4567">
           </div>
         </div>
 
@@ -1778,6 +1791,16 @@
         const fph = document.getElementById('f-phone');
         if (!ph.value.trim()) { fph.classList.add('invalid'); showToast('Phone number is required.'); return; }
         else fph.classList.remove('invalid');
+
+        let locOk = true;
+        [['f-place-live','place_live'], ['f-house-number','house_number'], ['f-landmark','landmark']]
+          .forEach(([id, name]) => {
+            const fld = document.getElementById(id);
+            const inp = document.querySelector('[name=' + name + ']');
+            if (!inp || !inp.value.trim()) { fld.classList.add('invalid'); locOk = false; }
+            else fld.classList.remove('invalid');
+          });
+        if (!locOk) { showToast('Please fill all required location fields.'); return; }
       }
     }
 
@@ -1890,8 +1913,9 @@
     const fields = [
       'title','firstname','middlename','surname','dob','gender','marital',
       'nationality','occupation','salvation_date','baptism','prev_church',
-      'phone','phone2','email','area','region','digital_address',
-      'kin_name','kin_rel','kin_phone','ministry','referral','prayer'
+      'phone','phone2','email','place_live','house_number','landmark',
+      'region','digital_address','kin_name','kin_rel','kin_phone',
+      'ministry','referral','prayer'
     ];
     const data = {
       id: 'GJMC-' + Date.now(),
@@ -2058,7 +2082,7 @@
     document.getElementById('cardPhone').textContent    = d.phone      || '—';
     document.getElementById('cardOccupation').textContent = d.occupation || '—';
     document.getElementById('cardMinistry').textContent = d.ministry   || '—';
-    document.getElementById('cardArea').textContent     = [d.area, d.region].filter(Boolean).join(', ') || '—';
+    document.getElementById('cardArea').textContent     = [d.house_number, d.place_live, d.region].filter(Boolean).join(', ') || '—';
     document.getElementById('cardId').textContent       = d.id;
     document.getElementById('cardInitials').textContent = initials;
     document.getElementById('cardDateJoined').textContent =
