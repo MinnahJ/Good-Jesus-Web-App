@@ -1668,6 +1668,7 @@
           <button class="btn btn-gold" onclick="openPrintCard()" type="button">&#9646; Print Member Card</button>
           <button class="btn btn-outline" onclick="registerAnother()" type="button">Register Another</button>
           <button class="btn btn-ghost" onclick="exportRecords()" type="button">&#8618; Export Records (JSON)</button>
+          <button class="btn btn-ghost" onclick="clearAllData()" type="button" style="border-color:rgba(192,57,43,0.3);color:rgba(192,57,43,0.7)">&#9249; Clear All Data</button>
         </div>
       </div>
 
@@ -1683,115 +1684,163 @@
 <div class="toast" id="toast"></div>
 
 <script>
+  // ═══════════════════════════════════════════════════════
+  //  GOOD JESUS MIRACLE CENTER — Registration System
+  //  Fully debugged + localStorage persistence
+  // ═══════════════════════════════════════════════════════
+
   // ── CONFIG ──────────────────────────────────────────────
-  let SHEETS_URL = localStorage.getItem('gjmc_sheets_url') || '';
-
-  // Restore saved URL
-  window.addEventListener('DOMContentLoaded', () => {
-    if(SHEETS_URL) {
-      document.getElementById('sheetsUrl').value = SHEETS_URL;
-      document.getElementById('sheetsBtn').classList.add('sheets-connected');
-      document.getElementById('sheetsBtn').textContent = '✦ Sheets Connected';
-    }
-  });
-
-  // ── PARTICLES ───────────────────────────────────────────
-  const pc = document.getElementById('particles');
-  for(let i = 0; i < 18; i++) {
-    const p = document.createElement('div');
-    p.className = 'particle';
-    p.style.left = Math.random()*100 + '%';
-    p.style.bottom = '-10px';
-    p.style.animationDuration = (8 + Math.random()*14) + 's';
-    p.style.animationDelay = (Math.random()*12) + 's';
-    p.style.width = p.style.height = (1 + Math.random()*2) + 'px';
-    p.style.opacity = 0.4 + Math.random()*0.4;
-    pc.appendChild(p);
-  }
+  let SHEETS_URL = '';
 
   // ── STATE ────────────────────────────────────────────────
   let currentStep = 1;
-  let memberType = '';
+  let memberType  = '';
   let capturedPhotoData = '';
-  let records = [];
-  let stream = null;
-  let lastRecord = null;
+  let records     = [];
+  let stream      = null;
+  let lastRecord  = null;
+
+  // ── BOOT: restore persisted data ─────────────────────────
+  (function boot() {
+    // Restore Google Sheets URL
+    try { SHEETS_URL = localStorage.getItem('gjmc_sheets_url') || ''; } catch(e) {}
+    if (SHEETS_URL) {
+      document.getElementById('sheetsBtn').classList.add('sheets-connected');
+      document.getElementById('sheetsBtn').textContent = '✦ Sheets Connected';
+    }
+
+    // Restore saved records
+    try {
+      const saved = localStorage.getItem('gjmc_records');
+      if (saved) {
+        records = JSON.parse(saved);
+        updateRecordCount();
+      }
+    } catch(e) { records = []; }
+
+    // Restore sheets URL input
+    try {
+      const url = localStorage.getItem('gjmc_sheets_url');
+      if (url) document.getElementById('sheetsUrl').value = url;
+    } catch(e) {}
+  })();
+
+  // ── PARTICLES ────────────────────────────────────────────
+  (function initParticles() {
+    const pc = document.getElementById('particles');
+    for (let i = 0; i < 18; i++) {
+      const p = document.createElement('div');
+      p.className = 'particle';
+      p.style.left              = Math.random() * 100 + '%';
+      p.style.bottom            = '-10px';
+      p.style.animationDuration = (8 + Math.random() * 14) + 's';
+      p.style.animationDelay    = (Math.random() * 12) + 's';
+      const sz = (1 + Math.random() * 2) + 'px';
+      p.style.width = p.style.height = sz;
+      p.style.opacity = 0.4 + Math.random() * 0.4;
+      pc.appendChild(p);
+    }
+  })();
 
   // ── MEMBER TYPE ──────────────────────────────────────────
   function selectType(btn, type) {
     document.querySelectorAll('.member-type-btn').forEach(b => b.classList.remove('selected'));
     btn.classList.add('selected');
     memberType = type;
-    const isConvert = type === 'new_convert';
+    const isConvert   = type === 'new_convert';
     const isNewMember = type === 'new_member';
-    document.getElementById('salvation-section').style.display = isConvert ? '' : 'none';
-    document.getElementById('salvation-fields').style.display = isConvert ? '' : 'none';
-    document.getElementById('prev-church-row').style.display = isNewMember ? '' : 'none';
+    document.getElementById('salvation-section').style.display = isConvert   ? '' : 'none';
+    document.getElementById('salvation-fields').style.display  = isConvert   ? '' : 'none';
+    document.getElementById('prev-church-row').style.display   = isNewMember ? '' : 'none';
   }
 
   // ── STEP NAVIGATION ──────────────────────────────────────
   function goStep(n) {
-    if(n > currentStep) {
-      if(currentStep === 1 && !memberType) {
-        showToast('Please select your member type to continue.');
+    // Forward validation
+    if (n > currentStep) {
+      if (currentStep === 1 && !memberType) {
+        showToast('Please select your membership type to continue.');
         return;
       }
-      if(currentStep === 2) {
+      if (currentStep === 2) {
         let ok = true;
-        [['f-firstname','firstname'],['f-surname','surname'],['f-dob','dob'],['f-gender','gender']].forEach(([id, name]) => {
-          const fld = document.getElementById(id);
-          const inp = document.querySelector('[name='+name+']');
-          if(!inp || !inp.value.trim()) { fld.classList.add('invalid'); ok = false; }
-          else fld.classList.remove('invalid');
-        });
-        if(!ok) { showToast('Please fill all required fields.'); return; }
+        [['f-firstname','firstname'], ['f-surname','surname'], ['f-dob','dob'], ['f-gender','gender']]
+          .forEach(([id, name]) => {
+            const fld = document.getElementById(id);
+            const inp = document.querySelector('[name=' + name + ']');
+            if (!inp || !inp.value.trim()) { fld.classList.add('invalid'); ok = false; }
+            else fld.classList.remove('invalid');
+          });
+        if (!ok) { showToast('Please fill all required fields.'); return; }
       }
-      if(currentStep === 3) {
-        const ph = document.querySelector('[name=phone]');
+      if (currentStep === 3) {
+        const ph  = document.querySelector('[name=phone]');
         const fph = document.getElementById('f-phone');
-        if(!ph.value.trim()) { fph.classList.add('invalid'); showToast('Phone number is required.'); return; }
+        if (!ph.value.trim()) { fph.classList.add('invalid'); showToast('Phone number is required.'); return; }
         else fph.classList.remove('invalid');
       }
     }
-    if(currentStep === 4 && n !== 4) stopCamera();
-    document.getElementById('step'+currentStep).style.display = 'none';
+
+    // Stop camera if leaving step 4
+    if (currentStep === 4 && n !== 4) stopCamera();
+
+    // Hide current step (safe null-check — step 0 doesn't exist in DOM)
+    const prevEl = document.getElementById('step' + currentStep);
+    if (prevEl) prevEl.style.display = 'none';
+
     currentStep = n;
-    const el = document.getElementById('step'+n);
-    if(el) { el.style.display = ''; el.style.animation = 'none'; el.offsetHeight; el.style.animation = ''; }
+
+    // Show next step with re-trigger animation
+    const nextEl = document.getElementById('step' + n);
+    if (nextEl) {
+      nextEl.style.display     = '';
+      nextEl.style.animation   = 'none';
+      void nextEl.offsetHeight; // reflow
+      nextEl.style.animation   = '';
+    }
+
     updateProgress(n);
-    window.scrollTo({top: 0, behavior:'smooth'});
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   function updateProgress(step) {
-    for(let i = 0; i < 4; i++) {
-      const dot = document.getElementById('dot'+i);
-      const lbl = document.getElementById('lbl'+i);
-      const line = document.getElementById('line'+i);
-      dot.classList.remove('active','done');
-      lbl.classList.remove('active');
-      if(i < step-1) { dot.classList.add('done'); dot.innerHTML = '✓'; }
-      else if(i === step-1) { dot.classList.add('active'); dot.innerHTML = i+1; lbl.classList.add('active'); }
-      else { dot.innerHTML = i+1; }
-      if(line) line.classList.toggle('filled', i < step-1);
+    for (let i = 0; i < 4; i++) {
+      const dot  = document.getElementById('dot'  + i);
+      const lbl  = document.getElementById('lbl'  + i);
+      const line = document.getElementById('line' + i);
+      if (!dot) continue;
+      dot.classList.remove('active', 'done');
+      if (lbl) lbl.classList.remove('active');
+      if (i < step - 1) {
+        dot.classList.add('done');
+        dot.innerHTML = '✓';
+      } else if (i === step - 1) {
+        dot.classList.add('active');
+        dot.innerHTML = i + 1;
+        if (lbl) lbl.classList.add('active');
+      } else {
+        dot.innerHTML = i + 1;
+      }
+      if (line) line.classList.toggle('filled', i < step - 1);
     }
   }
 
   // ── CAMERA ───────────────────────────────────────────────
   async function startCamera() {
     try {
-      stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:400,height:400}});
+      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: 400, height: 400 } });
       document.getElementById('videoEl').srcObject = stream;
       document.getElementById('cameraView').classList.add('active');
       document.getElementById('btnStartCamera').style.display = 'none';
-      document.getElementById('btnCapture').style.display = '';
+      document.getElementById('btnCapture').style.display     = '';
       document.getElementById('photoPlaceholderState').style.display = 'none';
-    } catch(e) {
-      showToast('Camera access denied. Please upload a photo instead.');
+    } catch (e) {
+      showToast('Camera access denied — please upload a photo instead.');
     }
   }
 
   function capturePhoto() {
-    const video = document.getElementById('videoEl');
+    const video  = document.getElementById('videoEl');
     const canvas = document.getElementById('photoCanvas');
     canvas.width = 400; canvas.height = 400;
     canvas.getContext('2d').drawImage(video, 0, 0, 400, 400);
@@ -1801,23 +1850,26 @@
   }
 
   function stopCamera() {
-    if(stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+    if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
     document.getElementById('cameraView').classList.remove('active');
   }
 
   function retakePhoto() {
     capturedPhotoData = '';
-    document.getElementById('capturedState').style.display = 'none';
-    document.getElementById('capturedRing').style.display = 'none';
+    document.getElementById('capturedState').style.display       = 'none';
+    document.getElementById('capturedRing').style.display        = 'none';
     document.getElementById('photoPlaceholderState').style.display = '';
-    document.getElementById('btnStartCamera').style.display = '';
-    document.getElementById('btnCapture').style.display = 'none';
-    document.getElementById('btnRetake').style.display = 'none';
+    document.getElementById('btnStartCamera').style.display      = '';
+    document.getElementById('btnCapture').style.display          = 'none';
+    document.getElementById('btnRetake').style.display           = 'none';
+    // Reset file input so the same file can be re-selected
+    const fi = document.getElementById('photoUpload');
+    if (fi) fi.value = '';
   }
 
   function handleUpload(e) {
     const file = e.target.files[0];
-    if(!file) return;
+    if (!file) return;
     const reader = new FileReader();
     reader.onload = ev => { capturedPhotoData = ev.target.result; showCaptured(); };
     reader.readAsDataURL(file);
@@ -1825,25 +1877,42 @@
 
   function showCaptured() {
     document.getElementById('capturedImg').src = capturedPhotoData;
-    document.getElementById('capturedRing').style.display = '';
-    document.getElementById('capturedState').style.display = 'flex';
+    document.getElementById('capturedRing').style.display        = '';
+    document.getElementById('capturedState').style.display       = 'flex';
     document.getElementById('photoPlaceholderState').style.display = 'none';
-    document.getElementById('btnStartCamera').style.display = 'none';
-    document.getElementById('btnCapture').style.display = 'none';
-    document.getElementById('btnRetake').style.display = '';
+    document.getElementById('btnStartCamera').style.display      = 'none';
+    document.getElementById('btnCapture').style.display          = 'none';
+    document.getElementById('btnRetake').style.display           = '';
   }
 
   // ── DATA COLLECTION ──────────────────────────────────────
   function collectData() {
-    const fields = ['title','firstname','middlename','surname','dob','gender','marital','nationality','occupation',
-      'salvation_date','baptism','prev_church','phone','phone2','email','area','region','digital_address',
-      'kin_name','kin_rel','kin_phone','ministry','referral','prayer'];
-    const data = { id: 'GJMC-' + Date.now(), member_type: memberType, photo: capturedPhotoData, timestamp: new Date().toISOString() };
+    const fields = [
+      'title','firstname','middlename','surname','dob','gender','marital',
+      'nationality','occupation','salvation_date','baptism','prev_church',
+      'phone','phone2','email','area','region','digital_address',
+      'kin_name','kin_rel','kin_phone','ministry','referral','prayer'
+    ];
+    const data = {
+      id: 'GJMC-' + Date.now(),
+      member_type: memberType,
+      photo: capturedPhotoData,
+      timestamp: new Date().toISOString()
+    };
     fields.forEach(f => {
-      const el = document.querySelector('[name='+f+']');
-      if(el) data[f] = el.value;
+      const el = document.querySelector('[name=' + f + ']');
+      if (el) data[f] = el.value;
     });
     return data;
+  }
+
+  // ── PERSIST TO localStorage ───────────────────────────────
+  function saveRecords() {
+    try {
+      localStorage.setItem('gjmc_records', JSON.stringify(records));
+    } catch (e) {
+      showToast('Storage limit reached — export your records to free space.');
+    }
   }
 
   // ── SUBMIT ───────────────────────────────────────────────
@@ -1851,29 +1920,78 @@
     const data = collectData();
     records.push(data);
     lastRecord = data;
+    saveRecords();          // ← persist immediately
     updateRecordCount();
+    stopCamera();
 
-    document.getElementById('step4').style.display = 'none';
-    document.getElementById('successScreen').classList.add('active');
+    // Transition to success screen
+    const step4 = document.getElementById('step4');
+    if (step4) step4.style.display = 'none';
     document.getElementById('progressTrack').style.display = 'none';
+    document.getElementById('successScreen').classList.add('active');
 
-    const typeLabels = {new_convert:'New Convert',new_member:'New Member',existing_member:'Existing Member'};
+    // Personalise the badge
+    const typeLabels = { new_convert: 'New Convert', new_member: 'New Member', existing_member: 'Existing Member' };
     const name = [data.title, data.firstname, data.surname].filter(Boolean).join(' ');
     document.getElementById('memberBadge').innerHTML =
       '&#9670; ' + (name || 'Member') + ' &mdash; ' + (typeLabels[memberType] || memberType);
 
-    stopCamera();
     showToast('Registration saved ✦');
 
-    // Send to Google Sheets if configured
-    if(SHEETS_URL) sendToSheets(data);
+    // Push to Google Sheets if configured
+    if (SHEETS_URL) sendToSheets(data);
+  }
+
+  // ── REGISTER ANOTHER (full clean reset → homepage step 1) ─
+  function registerAnother() {
+    // 1. Clear volatile state
+    memberType        = '';
+    capturedPhotoData = '';
+    lastRecord        = null;
+
+    // 2. Reset all form fields
+    document.querySelectorAll('input:not([type=file]), textarea')
+      .forEach(el => el.value = '');
+    document.querySelectorAll('select')
+      .forEach(el => el.selectedIndex = 0);
+    document.querySelectorAll('.member-type-btn')
+      .forEach(b => b.classList.remove('selected'));
+    document.querySelectorAll('.field.invalid')
+      .forEach(f => f.classList.remove('invalid'));
+
+    // 3. Hide conditional sections
+    ['salvation-section', 'salvation-fields', 'prev-church-row']
+      .forEach(id => document.getElementById(id).style.display = 'none');
+
+    // 4. Reset photo capture UI
+    retakePhoto();
+
+    // 5. Hide success screen
+    document.getElementById('successScreen').classList.remove('active');
+
+    // 6. Hide ALL numbered steps (defensive)
+    [1, 2, 3, 4].forEach(n => {
+      const el = document.getElementById('step' + n);
+      if (el) el.style.display = 'none';
+    });
+
+    // 7. Reveal progress track and go to step 1 (the homepage)
+    document.getElementById('progressTrack').style.display = '';
+    currentStep = 1;
+    const step1 = document.getElementById('step1');
+    step1.style.display   = '';
+    step1.style.animation = 'none';
+    void step1.offsetHeight;
+    step1.style.animation = '';
+
+    updateProgress(1);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   // ── GOOGLE SHEETS ─────────────────────────────────────────
   async function sendToSheets(data) {
-    const payload = {...data};
-    // Don't send raw base64 photo — just flag it
-    if(payload.photo && payload.photo.length > 100) payload.photo = 'YES';
+    const payload = { ...data };
+    if (payload.photo && payload.photo.length > 100) payload.photo = 'YES';
     try {
       await fetch(SHEETS_URL, {
         method: 'POST',
@@ -1882,138 +2000,138 @@
         body: JSON.stringify(payload)
       });
       showToast('✦ Synced to Google Sheets');
-    } catch(err) {
-      showToast('Sheet sync failed — data saved locally.');
+    } catch (err) {
+      showToast('Sheets sync failed — data is saved locally.');
     }
   }
 
   // ── SHEETS MODAL ─────────────────────────────────────────
   function openSheetsModal() {
     document.getElementById('sheetsModal').classList.add('open');
-    if(SHEETS_URL) document.getElementById('sheetsUrl').value = SHEETS_URL;
+    if (SHEETS_URL) document.getElementById('sheetsUrl').value = SHEETS_URL;
   }
-
   function closeSheetsModal() {
     document.getElementById('sheetsModal').classList.remove('open');
   }
-
   function saveSheetUrl() {
-    const url = document.getElementById('sheetsUrl').value.trim();
+    const url    = document.getElementById('sheetsUrl').value.trim();
     const status = document.getElementById('sheetsStatus');
-    if(!url) { status.className = 'sheets-status err'; status.textContent = 'Please enter a valid URL.'; return; }
-    if(!url.includes('script.google.com')) {
+    if (!url) {
+      status.className = 'sheets-status err';
+      status.textContent = 'Please enter a valid URL.';
+      return;
+    }
+    if (!url.includes('script.google.com')) {
       status.className = 'sheets-status err';
       status.textContent = 'URL must be a Google Apps Script Web App URL.';
       return;
     }
     SHEETS_URL = url;
-    localStorage.setItem('gjmc_sheets_url', url);
+    try { localStorage.setItem('gjmc_sheets_url', url); } catch(e) {}
     status.className = 'sheets-status ok';
     status.textContent = '✦ Connected — registrations will sync automatically.';
     document.getElementById('sheetsBtn').classList.add('sheets-connected');
     document.getElementById('sheetsBtn').textContent = '✦ Sheets Connected';
   }
-
   function copyScript() {
     const code = document.getElementById('appsScriptCode').textContent;
-    navigator.clipboard.writeText(code).then(() => showToast('Script copied to clipboard ✦'));
+    navigator.clipboard.writeText(code)
+      .then(() => showToast('Apps Script copied to clipboard ✦'))
+      .catch(() => showToast('Copy failed — please select and copy manually.'));
   }
-
   document.getElementById('sheetsModal').addEventListener('click', function(e) {
-    if(e.target === this) closeSheetsModal();
+    if (e.target === this) closeSheetsModal();
   });
 
   // ── PRINT CARD ────────────────────────────────────────────
   function openPrintCard() {
-    if(!lastRecord) return;
+    if (!lastRecord) return;
     const d = lastRecord;
-    const typeLabels = {new_convert:'New Convert',new_member:'New Member',existing_member:'Existing Member'};
-    const name = [d.title, d.firstname, d.middlename, d.surname].filter(Boolean).join(' ');
-    const initials = ((d.firstname||'?')[0] + (d.surname||'?')[0]).toUpperCase();
+    const typeLabels = { new_convert: 'New Convert', new_member: 'New Member', existing_member: 'Existing Member' };
+    const name     = [d.title, d.firstname, d.middlename, d.surname].filter(Boolean).join(' ');
+    const initials = ((d.firstname || '?')[0] + (d.surname || '?')[0]).toUpperCase();
 
-    document.getElementById('cardName').textContent = name || 'Member';
+    document.getElementById('cardName').textContent     = name || 'Member';
     document.getElementById('cardTypePill').textContent = typeLabels[d.member_type] || d.member_type;
-    document.getElementById('cardDob').textContent = d.dob || '—';
-    document.getElementById('cardGender').textContent = d.gender || '—';
-    document.getElementById('cardPhone').textContent = d.phone || '—';
+    document.getElementById('cardDob').textContent      = d.dob        || '—';
+    document.getElementById('cardGender').textContent   = d.gender     || '—';
+    document.getElementById('cardPhone').textContent    = d.phone      || '—';
     document.getElementById('cardOccupation').textContent = d.occupation || '—';
-    document.getElementById('cardMinistry').textContent = d.ministry || '—';
-    document.getElementById('cardArea').textContent = [d.area, d.region].filter(Boolean).join(', ') || '—';
-    document.getElementById('cardId').textContent = d.id;
-    document.getElementById('cardDateJoined').textContent = 'Registered: ' + new Date(d.timestamp).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
+    document.getElementById('cardMinistry').textContent = d.ministry   || '—';
+    document.getElementById('cardArea').textContent     = [d.area, d.region].filter(Boolean).join(', ') || '—';
+    document.getElementById('cardId').textContent       = d.id;
     document.getElementById('cardInitials').textContent = initials;
+    document.getElementById('cardDateJoined').textContent =
+      'Registered: ' + new Date(d.timestamp).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
 
-    // Photo
-    const cardPhoto = document.getElementById('cardPhoto');
+    const cardPhoto      = document.getElementById('cardPhoto');
     const cardInitialsEl = document.getElementById('cardInitials');
-    if(d.photo) {
-      cardPhoto.src = d.photo;
+    if (d.photo) {
+      cardPhoto.src          = d.photo;
       cardPhoto.style.display = 'block';
       cardInitialsEl.style.display = 'none';
     } else {
-      cardPhoto.style.display = 'none';
+      cardPhoto.style.display      = 'none';
       cardInitialsEl.style.display = 'flex';
     }
 
-    // Decorative barcode bars
-    const bc = document.getElementById('cardBarcode');
+    // Decorative barcode
+    const bc   = document.getElementById('cardBarcode');
     bc.innerHTML = '';
-    const seed = d.id.split('').reduce((a,c) => a + c.charCodeAt(0), 0);
-    for(let i = 0; i < 18; i++) {
+    const seed = d.id.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+    for (let i = 0; i < 18; i++) {
       const bar = document.createElement('div');
-      const h = 6 + ((seed * (i+3)) % 12);
-      bar.style.cssText = 'width:'+(i%3===1?2:1)+'px;height:'+h+'px;background:#09111e;border-radius:1px';
+      const h   = 6 + ((seed * (i + 3)) % 12);
+      bar.style.cssText = 'width:' + (i % 3 === 1 ? 2 : 1) + 'px;height:' + h + 'px;background:#09111e;border-radius:1px';
       bc.appendChild(bar);
     }
 
     document.getElementById('printCard').classList.add('open');
   }
-
   function closePrintCard() {
     document.getElementById('printCard').classList.remove('open');
   }
-
   document.getElementById('printCard').addEventListener('click', function(e) {
-    if(e.target === this) closePrintCard();
+    if (e.target === this) closePrintCard();
   });
 
-  // ── MISC ──────────────────────────────────────────────────
-  function registerAnother() {
-    memberType = ''; capturedPhotoData = ''; lastRecord = null;
-    document.querySelectorAll('.member-type-btn').forEach(b => b.classList.remove('selected'));
-    document.querySelectorAll('input:not([type=file]), textarea').forEach(el => el.value = '');
-    document.querySelectorAll('select').forEach(el => el.selectedIndex = 0);
-    ['salvation-section','salvation-fields','prev-church-row'].forEach(id =>
-      document.getElementById(id).style.display = 'none');
-    retakePhoto();
-    document.getElementById('successScreen').classList.remove('active');
-    document.getElementById('progressTrack').style.display = '';
-    currentStep = 0;
-    goStep(1);
-  }
-
+  // ── EXPORT ───────────────────────────────────────────────
   function exportRecords() {
+    if (records.length === 0) { showToast('No records to export yet.'); return; }
     const exportData = records.map(r => {
-      const d = {...r};
-      if(d.photo && d.photo.length > 100) d.photo = '[base64 image — captured]';
+      const d = { ...r };
+      if (d.photo && d.photo.length > 100) d.photo = '[photo captured — not included in JSON]';
       return d;
     });
-    const blob = new Blob([JSON.stringify(exportData, null, 2)], {type:'application/json'});
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'gjmc-members-' + new Date().toISOString().slice(0,10) + '.json';
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const a    = document.createElement('a');
+    a.href     = URL.createObjectURL(blob);
+    a.download = 'gjmc-members-' + new Date().toISOString().slice(0, 10) + '.json';
     a.click();
+    URL.revokeObjectURL(a.href);
   }
 
+  // ── CLEAR ALL DATA ────────────────────────────────────────
+  function clearAllData() {
+    if (!confirm('Are you sure you want to delete ALL saved records? This cannot be undone.')) return;
+    records = [];
+    lastRecord = null;
+    try { localStorage.removeItem('gjmc_records'); } catch(e) {}
+    updateRecordCount();
+    showToast('All records cleared.');
+  }
+
+  // ── UTILITIES ─────────────────────────────────────────────
   function updateRecordCount() {
-    document.getElementById('recordCount').innerHTML = 'Records <span>' + records.length + '</span>';
+    document.getElementById('recordCount').innerHTML =
+      'Records <span>' + records.length + '</span>';
   }
 
   function showToast(msg) {
     const t = document.getElementById('toast');
     t.textContent = msg;
     t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), 3200);
+    setTimeout(() => t.classList.remove('show'), 3400);
   }
 </script>
 </body>
