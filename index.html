@@ -6,1146 +6,455 @@
 <title>Good Jesus Miracle Center — Member Registration</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  :root {
-    --navy: #09111e;
-    --navy-mid: #0f1d30;
-    --navy-light: #162844;
-    --gold: #c9993a;
-    --gold-bright: #e8b84b;
-    --gold-dim: #8a6520;
-    --gold-glow: rgba(201,153,58,0.15);
-    --cream: #f0e8d4;
-    --cream-dim: #b8a888;
-    --white: #ffffff;
-    --red-soft: #c0392b;
-    --success: #2ecc71;
-    --border: rgba(201,153,58,0.25);
-    --border-bright: rgba(201,153,58,0.55);
-    --step-dot: rgba(201,153,58,0.3);
-  }
-
-  html { scroll-behavior: smooth; }
-
-  body {
-    background: var(--navy);
-    color: var(--cream);
-    font-family: 'EB Garamond', Georgia, serif;
-    font-size: 16px;
-    min-height: 100vh;
-    overflow-x: hidden;
-    position: relative;
-  }
-
-  /* Sacred geometry background */
-  body::before {
-    content: '';
-    position: fixed; inset: 0;
-    background:
-      radial-gradient(ellipse 60% 80% at 50% -10%, rgba(201,153,58,0.08) 0%, transparent 70%),
-      radial-gradient(ellipse 40% 40% at 90% 90%, rgba(201,153,58,0.05) 0%, transparent 60%),
-      radial-gradient(ellipse 30% 50% at 10% 60%, rgba(201,153,58,0.04) 0%, transparent 60%);
-    pointer-events: none; z-index: 0;
-  }
-
-  /* Cross light ray */
-  body::after {
-    content: '';
-    position: fixed;
-    top: -20%;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 1px;
-    height: 50%;
-    background: linear-gradient(to bottom, rgba(201,153,58,0.18), transparent);
-    pointer-events: none; z-index: 0;
-  }
-
-  .cross-ray-h {
-    position: fixed;
-    top: 22%;
-    left: 0; right: 0;
-    height: 1px;
-    background: linear-gradient(to right, transparent, rgba(201,153,58,0.10), transparent);
-    pointer-events: none; z-index: 0;
-  }
-
-  /* Floating particles */
-  .particles { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
-  .particle {
-    position: absolute;
-    width: 2px; height: 2px;
-    border-radius: 50%;
-    background: var(--gold);
-    opacity: 0;
-    animation: float-up linear infinite;
-  }
-  @keyframes float-up {
-    0% { opacity: 0; transform: translateY(0) scale(0); }
-    10% { opacity: 0.6; }
-    90% { opacity: 0.2; }
-    100% { opacity: 0; transform: translateY(-120vh) scale(1.5); }
-  }
-
-  /* Layout */
-  .page-wrap {
-    position: relative; z-index: 1;
-    min-height: 100vh;
-    display: flex; flex-direction: column; align-items: center;
-    padding: 0 1rem 4rem;
-  }
-
-  /* Header */
-  .site-header {
-    text-align: center;
-    padding: 3.5rem 1rem 2rem;
-    width: 100%;
-  }
-
-  .church-emblem {
-    display: inline-flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.6rem;
-    margin-bottom: 1.4rem;
-  }
-
-  .emblem-cross {
-    position: relative;
-    width: 48px; height: 48px;
-  }
-  .emblem-cross::before {
-    content: '';
-    position: absolute;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    width: 4px; height: 100%;
-    background: linear-gradient(to bottom, var(--gold-bright), var(--gold-dim));
-    border-radius: 2px;
-  }
-  .emblem-cross::after {
-    content: '';
-    position: absolute;
-    top: 35%; left: 50%;
-    transform: translate(-50%, -50%);
-    width: 80%; height: 4px;
-    background: linear-gradient(to right, var(--gold-dim), var(--gold-bright), var(--gold-dim));
-    border-radius: 2px;
-  }
-
-  .emblem-ring {
-    position: absolute; inset: 0;
-    border: 1px solid rgba(201,153,58,0.4);
-    border-radius: 50%;
-  }
-
-  .church-name {
-    font-family: 'Cinzel', serif;
-    font-size: clamp(1rem, 3vw, 1.25rem);
-    font-weight: 400;
-    letter-spacing: 0.35em;
-    color: var(--gold);
-    text-transform: uppercase;
-  }
-
-  .page-title {
-    font-family: 'Cinzel', serif;
-    font-size: clamp(2rem, 6vw, 3.2rem);
-    font-weight: 600;
-    color: var(--cream);
-    line-height: 1.1;
-    letter-spacing: 0.04em;
-    margin-bottom: 0.6rem;
-  }
-
-  .page-subtitle {
-    font-family: 'Cormorant Garamond', serif;
-    font-style: italic;
-    font-size: clamp(1.05rem, 2.5vw, 1.3rem);
-    color: var(--cream-dim);
-    font-weight: 300;
-  }
-
-  .gold-line {
-    width: 80px; height: 1px;
-    background: linear-gradient(to right, transparent, var(--gold), transparent);
-    margin: 1.5rem auto;
-  }
-
-  /* Progress bar */
-  .progress-track {
-    display: flex;
-    align-items: center;
-    gap: 0;
-    margin: 2rem auto 0;
-    max-width: 480px;
-    width: 100%;
-    padding: 0 1rem;
-  }
-
-  .prog-step {
-    display: flex; flex-direction: column; align-items: center; gap: 6px;
-    flex: 1;
-    position: relative;
-  }
-
-  .prog-dot {
-    width: 28px; height: 28px;
-    border-radius: 50%;
-    border: 2px solid var(--step-dot);
-    background: var(--navy-mid);
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'Cinzel', serif;
-    font-size: 0.7rem;
-    color: var(--cream-dim);
-    transition: all 0.4s ease;
-    z-index: 1;
-    position: relative;
-  }
-
-  .prog-dot.active {
-    border-color: var(--gold);
-    background: var(--gold);
-    color: var(--navy);
-    box-shadow: 0 0 14px var(--gold-glow);
-  }
-
-  .prog-dot.done {
-    border-color: var(--gold);
-    background: transparent;
-    color: var(--gold);
-  }
-
-  .prog-label {
-    font-family: 'Cinzel', serif;
-    font-size: 0.6rem;
-    letter-spacing: 0.1em;
-    color: var(--cream-dim);
-    text-transform: uppercase;
-    text-align: center;
-    white-space: nowrap;
-  }
-
-  .prog-label.active { color: var(--gold); }
-
-  .prog-line {
-    flex: 1;
-    height: 1px;
-    background: var(--step-dot);
-    margin-bottom: 22px;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .prog-line-fill {
-    position: absolute; inset: 0;
-    background: var(--gold);
-    transform-origin: left;
-    transform: scaleX(0);
-    transition: transform 0.5s ease;
-  }
-
-  .prog-line-fill.filled { transform: scaleX(1); }
-
-  /* Card */
-  .form-card {
-    width: 100%;
-    max-width: 620px;
-    background: var(--navy-mid);
-    border: 1px solid var(--border);
-    border-radius: 2px;
-    margin-top: 2.5rem;
-    position: relative;
-    overflow: hidden;
-    animation: card-in 0.5s ease;
-  }
-
-  @keyframes card-in {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  .card-top-bar {
-    height: 3px;
-    background: linear-gradient(to right, transparent, var(--gold), transparent);
-  }
-
-  .card-inner { padding: 2.5rem 2.5rem 2rem; }
-
-  @media (max-width: 600px) {
-    .card-inner { padding: 1.8rem 1.4rem 1.5rem; }
-  }
-
-  .step-title {
-    font-family: 'Cinzel', serif;
-    font-size: 1.1rem;
-    font-weight: 600;
-    letter-spacing: 0.12em;
-    color: var(--gold);
-    text-transform: uppercase;
-    margin-bottom: 0.3rem;
-  }
-
-  .step-desc {
-    font-family: 'Cormorant Garamond', serif;
-    font-style: italic;
-    font-size: 1rem;
-    color: var(--cream-dim);
-    margin-bottom: 1.8rem;
-  }
-
-  .separator {
-    height: 1px;
-    background: var(--border);
-    margin: 1.5rem 0;
-  }
-
-  /* Member type selector */
-  .member-types {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-
-  .member-type-btn {
-    display: flex; align-items: flex-start; gap: 1.2rem;
-    padding: 1.3rem 1.5rem;
-    background: transparent;
-    border: 1px solid var(--border);
-    border-radius: 2px;
-    cursor: pointer;
-    text-align: left;
-    color: var(--cream);
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .member-type-btn::before {
-    content: '';
-    position: absolute; inset: 0;
-    background: var(--gold-glow);
-    opacity: 0;
-    transition: opacity 0.3s;
-  }
-
-  .member-type-btn:hover::before { opacity: 1; }
-  .member-type-btn:hover { border-color: var(--border-bright); }
-
-  .member-type-btn.selected {
-    border-color: var(--gold);
-    background: rgba(201,153,58,0.08);
-  }
-
-  .member-type-btn.selected::after {
-    content: '✓';
-    position: absolute;
-    top: 12px; right: 16px;
-    color: var(--gold);
-    font-size: 1rem;
-    font-family: sans-serif;
-  }
-
-  .type-icon {
-    width: 42px; height: 42px;
-    flex-shrink: 0;
-    border: 1px solid var(--border);
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1.2rem;
-    color: var(--gold);
-    transition: all 0.3s;
-  }
-
-  .member-type-btn.selected .type-icon {
-    border-color: var(--gold);
-    background: rgba(201,153,58,0.12);
-  }
-
-  .type-name {
-    font-family: 'Cinzel', serif;
-    font-size: 0.85rem;
-    letter-spacing: 0.1em;
-    color: var(--cream);
-    text-transform: uppercase;
-    margin-bottom: 0.3rem;
-  }
-
-  .type-desc {
-    font-family: 'Cormorant Garamond', serif;
-    font-style: italic;
-    font-size: 0.9rem;
-    color: var(--cream-dim);
-    line-height: 1.4;
-  }
-
-  /* Form fields */
-  .field-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-    margin-bottom: 1rem;
-  }
-
-  .field-row.single { grid-template-columns: 1fr; }
-  .field-row.triple { grid-template-columns: 1fr 1fr 1fr; }
-
-  @media (max-width: 500px) {
-    .field-row { grid-template-columns: 1fr; }
-    .field-row.triple { grid-template-columns: 1fr 1fr; }
-  }
-
-  .field {
-    display: flex; flex-direction: column; gap: 6px;
-  }
-
-  .field label {
-    font-family: 'Cinzel', serif;
-    font-size: 0.62rem;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--gold);
-  }
-
-  .field label .req { color: var(--red-soft); margin-left: 2px; }
-
-  .field input,
-  .field select,
-  .field textarea {
-    background: rgba(9,17,30,0.6);
-    border: 1px solid var(--border);
-    border-radius: 2px;
-    color: var(--cream);
-    font-family: 'EB Garamond', serif;
-    font-size: 1rem;
-    padding: 0.65rem 0.9rem;
-    transition: border-color 0.3s, box-shadow 0.3s;
-    outline: none;
-    width: 100%;
-    appearance: none;
-    -webkit-appearance: none;
-  }
-
-  .field input::placeholder,
-  .field textarea::placeholder { color: rgba(176,168,136,0.4); }
-
-  .field input:focus,
-  .field select:focus,
-  .field textarea:focus {
-    border-color: var(--gold);
-    box-shadow: 0 0 0 3px rgba(201,153,58,0.08);
-  }
-
-  .field select {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23c9993a' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 12px center;
-    padding-right: 2.2rem;
-  }
-
-  .field select option {
-    background: var(--navy);
-    color: var(--cream);
-  }
-
-  .field textarea { resize: vertical; min-height: 80px; }
-
-  .field-note {
-    font-family: 'Cormorant Garamond', serif;
-    font-style: italic;
-    font-size: 0.82rem;
-    color: rgba(176,168,136,0.6);
-    margin-top: 2px;
-  }
-
-  /* Photo capture */
-  .photo-zone {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1.5rem;
-  }
-
-  .photo-preview-ring {
-    width: 180px; height: 180px;
-    border-radius: 50%;
-    border: 2px solid var(--border);
-    padding: 4px;
-    position: relative;
-    flex-shrink: 0;
-  }
-
-  .photo-preview-ring::before {
-    content: '';
-    position: absolute; inset: -6px;
-    border-radius: 50%;
-    border: 1px solid rgba(201,153,58,0.15);
-  }
-
-  .photo-preview-ring::after {
-    content: '';
-    position: absolute; inset: -12px;
-    border-radius: 50%;
-    border: 1px solid rgba(201,153,58,0.07);
-  }
-
-  .photo-preview {
-    width: 100%; height: 100%;
-    border-radius: 50%;
-    object-fit: cover;
-    background: rgba(9,17,30,0.8);
-    display: flex; align-items: center; justify-content: center;
-    overflow: hidden;
-  }
-
-  .photo-placeholder {
-    width: 100%; height: 100%;
-    border-radius: 50%;
-    background: rgba(9,17,30,0.8);
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    gap: 8px;
-    color: var(--cream-dim);
-  }
-
-  .photo-placeholder svg { opacity: 0.4; }
-
-  .camera-view {
-    display: none;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-    width: 100%;
-  }
-
-  .camera-view.active { display: flex; }
-
-  #videoEl {
-    width: 260px; height: 260px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 2px solid var(--gold);
-    background: #000;
-  }
-
-  .photo-controls {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.8rem;
-    justify-content: center;
-  }
-
-  /* Buttons */
-  .btn {
-    font-family: 'Cinzel', serif;
-    font-size: 0.72rem;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    padding: 0.75rem 1.8rem;
-    border: 1px solid var(--gold);
-    border-radius: 2px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .btn-gold {
-    background: var(--gold);
-    color: var(--navy);
-  }
-
-  .btn-gold:hover {
-    background: var(--gold-bright);
-    border-color: var(--gold-bright);
-    box-shadow: 0 4px 24px rgba(201,153,58,0.3);
-  }
-
-  .btn-outline {
-    background: transparent;
-    color: var(--gold);
-  }
-
-  .btn-outline:hover {
-    background: rgba(201,153,58,0.08);
-  }
-
-  .btn-ghost {
-    background: transparent;
-    color: var(--cream-dim);
-    border-color: var(--border);
-    font-size: 0.65rem;
-  }
-
-  .btn-ghost:hover {
-    border-color: var(--border-bright);
-    color: var(--cream);
-  }
-
-  .btn:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-  }
-
-  .btn-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    margin-top: 2rem;
-    flex-wrap: wrap;
-  }
-
-  /* Validation */
-  .field-error {
-    font-size: 0.78rem;
-    color: #e74c3c;
-    font-family: 'EB Garamond', serif;
-    margin-top: 2px;
-    display: none;
-  }
-  .field.invalid .field-error { display: block; }
-  .field.invalid input,
-  .field.invalid select { border-color: #e74c3c; }
-
-  /* Success screen */
-  .success-screen {
-    display: none;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    padding: 3rem 2rem;
-    gap: 1.2rem;
-  }
-
-  .success-screen.active { display: flex; }
-
-  .success-ring {
-    width: 90px; height: 90px;
-    border-radius: 50%;
-    border: 2px solid var(--gold);
-    display: flex; align-items: center; justify-content: center;
-    position: relative;
-    animation: pulse-ring 2s ease infinite;
-  }
-
-  @keyframes pulse-ring {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(201,153,58,0.4); }
-    50% { box-shadow: 0 0 0 14px rgba(201,153,58,0); }
-  }
-
-  .success-ring svg { color: var(--gold); }
-
-  .success-title {
-    font-family: 'Cinzel', serif;
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: var(--cream);
-    letter-spacing: 0.06em;
-  }
-
-  .success-verse {
-    font-family: 'Cormorant Garamond', serif;
-    font-style: italic;
-    font-size: 1.1rem;
-    color: var(--cream-dim);
-    max-width: 380px;
-    line-height: 1.6;
-  }
-
-  .success-ref {
-    font-family: 'Cinzel', serif;
-    font-size: 0.7rem;
-    letter-spacing: 0.15em;
-    color: var(--gold-dim);
-    text-transform: uppercase;
-  }
-
-  /* Member badge summary */
-  .summary-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 0.5rem 1.2rem;
-    border: 1px solid var(--border-bright);
-    border-radius: 999px;
-    font-family: 'Cinzel', serif;
-    font-size: 0.72rem;
-    letter-spacing: 0.1em;
-    color: var(--gold);
-    text-transform: uppercase;
-    background: rgba(201,153,58,0.06);
-  }
-
-  /* Toast */
-  .toast {
-    position: fixed;
-    bottom: 2rem; left: 50%;
-    transform: translateX(-50%) translateY(100px);
-    background: var(--navy-light);
-    border: 1px solid var(--border-bright);
-    color: var(--cream);
-    padding: 0.8rem 1.5rem;
-    border-radius: 2px;
-    font-family: 'EB Garamond', serif;
-    font-size: 0.95rem;
-    z-index: 999;
-    transition: transform 0.4s ease;
-  }
-  .toast.show { transform: translateX(-50%) translateY(0); }
-
-  /* Photo canvas hidden */
-  #photoCanvas { display: none; }
-
-  /* Captured photo */
-  #capturedPhoto {
-    width: 100%; height: 100%;
-    border-radius: 50%;
-    object-fit: cover;
-    display: none;
-  }
-
-  .captured-img-ring {
-    width: 160px; height: 160px;
-    border-radius: 50%;
-    border: 2px solid var(--gold);
-    padding: 4px;
-    margin: 0 auto 1rem;
-    position: relative;
-    display: none;
-    box-shadow: 0 0 24px rgba(201,153,58,0.2);
-  }
-
-  .captured-img-ring img {
-    width: 100%; height: 100%;
-    border-radius: 50%;
-    object-fit: cover;
-  }
-
-  .photo-captured-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-  }
-
-  /* Section divider */
-  .section-heading {
-    display: flex;
-    align-items: center;
-    gap: 0.8rem;
-    margin: 1.5rem 0 1rem;
-  }
-
-  .section-heading span {
-    font-family: 'Cinzel', serif;
-    font-size: 0.62rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--gold-dim);
-    white-space: nowrap;
-  }
-
-  .section-heading::before,
-  .section-heading::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: var(--border);
-  }
-
-  /* Animated entrance for steps */
-  .step-content { animation: step-in 0.4s ease; }
-
-  @keyframes step-in {
-    from { opacity: 0; transform: translateX(18px); }
-    to { opacity: 1; transform: translateX(0); }
-  }
-
-  /* Footer */
-  .site-footer {
-    text-align: center;
-    padding: 2rem 1rem;
-    font-family: 'Cormorant Garamond', serif;
-    font-style: italic;
-    font-size: 0.9rem;
-    color: rgba(176,168,136,0.35);
-    position: relative; z-index: 1;
-  }
-
-  /* export btn */
-  .export-btn-wrap {
-    margin-top: 1.5rem;
-    display: flex;
-    justify-content: center;
-    gap: 0.7rem;
-    flex-wrap: wrap;
-  }
-
-  /* Counter badge */
-  .record-count {
-    position: fixed;
-    top: 1.2rem; right: 1.2rem;
-    background: rgba(15,29,48,0.9);
-    border: 1px solid var(--border);
-    padding: 0.5rem 1rem;
-    border-radius: 2px;
-    font-family: 'Cinzel', serif;
-    font-size: 0.65rem;
-    letter-spacing: 0.12em;
-    color: var(--gold);
-    text-transform: uppercase;
-    z-index: 100;
-    display: flex; align-items: center; gap: 8px;
-  }
-  .record-count span { color: var(--cream); }
-
-  .sheets-setup-btn {
-    position: fixed;
-    top: 1.2rem; left: 1.2rem;
-    background: rgba(15,29,48,0.9);
-    border: 1px solid var(--border);
-    padding: 0.5rem 1rem;
-    border-radius: 2px;
-    font-family: 'Cinzel', serif;
-    font-size: 0.62rem;
-    letter-spacing: 0.12em;
-    color: var(--cream-dim);
-    text-transform: uppercase;
-    z-index: 100;
-    cursor: pointer;
-    transition: all 0.3s;
-  }
-  .sheets-setup-btn:hover { border-color: var(--border-bright); color: var(--gold); }
-  .sheets-connected { color: var(--success) !important; border-color: rgba(46,204,113,0.4) !important; }
-
-  /* Modal overlay */
-  .modal-overlay {
-    display: none;
-    position: fixed; inset: 0;
-    background: rgba(5,10,18,0.85);
-    z-index: 500;
-    align-items: center; justify-content: center;
-    padding: 1rem;
-  }
-  .modal-overlay.open { display: flex; }
-
-  .modal-box {
-    background: var(--navy-mid);
-    border: 1px solid var(--border-bright);
-    border-radius: 2px;
-    width: 100%; max-width: 560px;
-    max-height: 90vh;
-    overflow-y: auto;
-    position: relative;
-    animation: card-in 0.35s ease;
-  }
-
-  .modal-top { height: 3px; background: linear-gradient(to right, transparent, var(--gold), transparent); }
-
-  .modal-body { padding: 2rem; }
-
-  .modal-title {
-    font-family: 'Cinzel', serif;
-    font-size: 1rem;
-    letter-spacing: 0.12em;
-    color: var(--gold);
-    text-transform: uppercase;
-    margin-bottom: 0.3rem;
-  }
-
-  .modal-sub {
-    font-family: 'Cormorant Garamond', serif;
-    font-style: italic;
-    color: var(--cream-dim);
-    font-size: 0.95rem;
-    margin-bottom: 1.5rem;
-  }
-
-  .step-block {
-    background: rgba(9,17,30,0.5);
-    border: 1px solid var(--border);
-    border-radius: 2px;
-    padding: 1.1rem 1.2rem;
-    margin-bottom: 1rem;
-  }
-
-  .step-block-num {
-    font-family: 'Cinzel', serif;
-    font-size: 0.6rem;
-    letter-spacing: 0.18em;
-    color: var(--gold-dim);
-    text-transform: uppercase;
-    margin-bottom: 0.5rem;
-  }
-
-  .step-block p {
-    font-size: 0.92rem;
-    color: var(--cream-dim);
-    line-height: 1.6;
-    margin-bottom: 0.6rem;
-  }
-
-  .step-block p:last-child { margin-bottom: 0; }
-
-  .code-block {
-    background: rgba(5,10,18,0.8);
-    border: 1px solid rgba(201,153,58,0.15);
-    border-radius: 2px;
-    padding: 0.8rem 1rem;
-    font-family: 'Courier New', monospace;
-    font-size: 0.72rem;
-    color: var(--cream-dim);
-    line-height: 1.6;
-    white-space: pre;
-    overflow-x: auto;
-    margin-top: 0.6rem;
-  }
-
-  .url-input-wrap { display: flex; gap: 8px; margin-top: 1rem; }
-  .url-input-wrap input {
-    flex: 1;
-    background: rgba(9,17,30,0.6);
-    border: 1px solid var(--border);
-    border-radius: 2px;
-    color: var(--cream);
-    font-family: 'EB Garamond', serif;
-    font-size: 0.9rem;
-    padding: 0.6rem 0.9rem;
-    outline: none;
-  }
-  .url-input-wrap input:focus { border-color: var(--gold); }
-
-  .sheets-status {
-    margin-top: 0.8rem;
-    font-family: 'Cormorant Garamond', serif;
-    font-style: italic;
-    font-size: 0.88rem;
-    min-height: 1.2rem;
-  }
-  .sheets-status.ok { color: var(--success); }
-  .sheets-status.err { color: #e74c3c; }
-  .sheets-status.sending { color: var(--gold-dim); }
-
-  .modal-close {
-    position: absolute; top: 14px; right: 14px;
-    background: none; border: none;
-    color: var(--cream-dim); font-size: 1.2rem;
-    cursor: pointer; line-height: 1;
-    transition: color 0.2s;
-  }
-  .modal-close:hover { color: var(--cream); }
-
-  /* Print card styles — only visible in print */
-  @media print {
-    body * { visibility: hidden !important; }
-    #printCard, #printCard * { visibility: visible !important; }
-    #printCard {
-      position: fixed !important;
-      inset: 0 !important;
-      display: flex !important;
-      align-items: center !important;
-      justify-content: center !important;
-      background: white !important;
-    }
-  }
-
-  /* Print card modal */
-  #printCard {
-    display: none;
-    position: fixed; inset: 0;
-    background: rgba(5,10,18,0.9);
-    z-index: 600;
-    align-items: center; justify-content: center;
-    padding: 1rem;
-  }
-  #printCard.open { display: flex; }
-
-  .card-paper {
-    width: 380px;
-    background: #fff;
-    border-radius: 4px;
-    overflow: hidden;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-    font-family: 'EB Garamond', Georgia, serif;
-    color: #1a1a1a;
-  }
-
-  .card-header-band {
-    background: #09111e;
-    padding: 1.2rem 1.4rem 1rem;
-    text-align: center;
-    position: relative;
-  }
-
-  .card-cross {
-    display: inline-block;
-    width: 22px; height: 22px;
-    position: relative;
-    margin-bottom: 6px;
-  }
-  .card-cross::before {
-    content: '';
-    position: absolute; top: 50%; left: 50%;
-    transform: translate(-50%,-50%);
-    width: 2px; height: 100%;
-    background: #c9993a;
-  }
-  .card-cross::after {
-    content: '';
-    position: absolute; top: 33%; left: 50%;
-    transform: translate(-50%,-50%);
-    width: 80%; height: 2px;
-    background: #c9993a;
-  }
-
-  .card-church-name {
-    font-family: 'Cinzel', serif;
-    font-size: 0.65rem;
-    letter-spacing: 0.25em;
-    color: #c9993a;
-    text-transform: uppercase;
-    display: block;
-  }
-
-  .card-tagline {
-    font-family: 'Cormorant Garamond', serif;
-    font-style: italic;
-    font-size: 0.72rem;
-    color: rgba(240,232,212,0.5);
-    display: block;
-    margin-top: 2px;
-  }
-
-  .card-gold-strip {
-    height: 2px;
-    background: linear-gradient(to right, transparent, #c9993a, transparent);
-  }
-
-  .card-body { padding: 1.4rem; }
-
-  .card-photo-row {
-    display: flex; align-items: center; gap: 1.1rem;
-    margin-bottom: 1rem;
-  }
-
-  .card-photo-wrap {
-    width: 72px; height: 72px; flex-shrink: 0;
-    border-radius: 50%;
-    border: 2px solid #c9993a;
-    padding: 2px;
-    overflow: hidden;
-  }
-
-  .card-photo-wrap img {
-    width: 100%; height: 100%;
-    border-radius: 50%;
-    object-fit: cover;
-  }
-
-  .card-photo-initials {
-    width: 100%; height: 100%;
-    border-radius: 50%;
-    background: #09111e;
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'Cinzel', serif;
-    font-size: 1.2rem;
-    color: #c9993a;
-  }
-
-  .card-name {
-    font-family: 'Cinzel', serif;
-    font-size: 1rem;
-    font-weight: 600;
-    color: #09111e;
-    line-height: 1.2;
-    margin-bottom: 4px;
-  }
-
-  .card-type-pill {
-    display: inline-block;
-    font-family: 'Cinzel', serif;
-    font-size: 0.58rem;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: #fff;
-    background: #09111e;
-    padding: 3px 10px;
-    border-radius: 999px;
-  }
-
-  .card-divider {
-    height: 1px;
-    background: rgba(201,153,58,0.2);
-    margin: 0.9rem 0;
-  }
-
-  .card-fields {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.6rem 1rem;
-  }
-
-  .card-field-label {
-    font-family: 'Cinzel', serif;
-    font-size: 0.52rem;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: #8a6520;
-    display: block;
-    margin-bottom: 1px;
-  }
-
-  .card-field-val {
-    font-size: 0.82rem;
-    color: #1a1a1a;
-    font-family: 'EB Garamond', serif;
-  }
-
-  .card-footer-band {
-    background: #f5f0e8;
-    border-top: 1px solid rgba(201,153,58,0.2);
-    padding: 0.7rem 1.4rem;
-    display: flex; justify-content: space-between; align-items: center;
-  }
-
-  .card-id {
-    font-family: 'Cinzel', serif;
-    font-size: 0.6rem;
-    letter-spacing: 0.12em;
-    color: #8a6520;
-  }
-
-  .card-date {
-    font-family: 'Cormorant Garamond', serif;
-    font-style: italic;
-    font-size: 0.72rem;
-    color: #8a6520;
-  }
-
-  .card-barcode {
-    display: flex; gap: 1px; align-items: flex-end;
-    height: 18px;
-  }
-
-  .print-actions {
-    display: flex; gap: 0.8rem; justify-content: center;
-    margin-top: 1.2rem;
-  }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#09111e;--navy-mid:#0f1d30;--navy-light:#162844;
+  --gold:#c9993a;--gold-bright:#e8b84b;--gold-dim:#8a6520;--gold-glow:rgba(201,153,58,.15);
+  --cream:#f0e8d4;--cream-dim:#b8a888;--white:#fff;
+  --red:#c0392b;--green:#2ecc71;
+  --border:rgba(201,153,58,.25);--border-hi:rgba(201,153,58,.55);--dot:rgba(201,153,58,.3)
+}
+html{scroll-behavior:smooth}
+body{background:var(--navy);color:var(--cream);font-family:'EB Garamond',Georgia,serif;font-size:16px;min-height:100vh;overflow-x:hidden;position:relative}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 60% 80% at 50% -10%,rgba(201,153,58,.08) 0%,transparent 70%),radial-gradient(ellipse 40% 40% at 90% 90%,rgba(201,153,58,.05) 0%,transparent 60%);pointer-events:none;z-index:0}
+body::after{content:'';position:fixed;top:-20%;left:50%;transform:translateX(-50%);width:1px;height:50%;background:linear-gradient(to bottom,rgba(201,153,58,.18),transparent);pointer-events:none;z-index:0}
+.ray-h{position:fixed;top:22%;left:0;right:0;height:1px;background:linear-gradient(to right,transparent,rgba(201,153,58,.1),transparent);pointer-events:none;z-index:0}
+.particles{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.particle{position:absolute;border-radius:50%;background:var(--gold);opacity:0;animation:floatup linear infinite}
+@keyframes floatup{0%{opacity:0;transform:translateY(0) scale(0)}10%{opacity:.6}90%{opacity:.2}100%{opacity:0;transform:translateY(-120vh) scale(1.5)}}
+.page-wrap{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:0 1rem 4rem}
+
+/* HEADER */
+.site-header{text-align:center;padding:3.5rem 1rem 2rem;width:100%}
+.church-emblem{display:inline-flex;flex-direction:column;align-items:center;gap:.6rem;margin-bottom:1.4rem}
+.emblem-cross{position:relative;width:48px;height:48px}
+.emblem-cross::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:4px;height:100%;background:linear-gradient(to bottom,var(--gold-bright),var(--gold-dim));border-radius:2px}
+.emblem-cross::after{content:'';position:absolute;top:35%;left:50%;transform:translate(-50%,-50%);width:80%;height:4px;background:linear-gradient(to right,var(--gold-dim),var(--gold-bright),var(--gold-dim));border-radius:2px}
+.emblem-ring{position:absolute;inset:0;border:1px solid rgba(201,153,58,.4);border-radius:50%}
+.church-name{font-family:'Cinzel',serif;font-size:clamp(1rem,3vw,1.25rem);font-weight:400;letter-spacing:.35em;color:var(--gold);text-transform:uppercase}
+.page-title{font-family:'Cinzel',serif;font-size:clamp(2rem,6vw,3.2rem);font-weight:600;color:var(--cream);line-height:1.1;letter-spacing:.04em;margin-bottom:.6rem}
+.page-subtitle{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:clamp(1.05rem,2.5vw,1.3rem);color:var(--cream-dim);font-weight:300}
+.gold-line{width:80px;height:1px;background:linear-gradient(to right,transparent,var(--gold),transparent);margin:1.5rem auto}
+
+/* PROGRESS */
+.progress-track{display:flex;align-items:center;margin:2rem auto 0;max-width:480px;width:100%;padding:0 1rem}
+.prog-step{display:flex;flex-direction:column;align-items:center;gap:6px;flex:1;position:relative}
+.prog-dot{width:28px;height:28px;border-radius:50%;border:2px solid var(--dot);background:var(--navy-mid);display:flex;align-items:center;justify-content:center;font-family:'Cinzel',serif;font-size:.7rem;color:var(--cream-dim);transition:all .4s;z-index:1;position:relative}
+.prog-dot.active{border-color:var(--gold);background:var(--gold);color:var(--navy);box-shadow:0 0 14px var(--gold-glow)}
+.prog-dot.done{border-color:var(--gold);background:transparent;color:var(--gold)}
+.prog-label{font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:.1em;color:var(--cream-dim);text-transform:uppercase;text-align:center;white-space:nowrap}
+.prog-label.active{color:var(--gold)}
+.prog-line{flex:1;height:1px;background:var(--dot);margin-bottom:22px;position:relative;overflow:hidden}
+.prog-line-fill{position:absolute;inset:0;background:var(--gold);transform-origin:left;transform:scaleX(0);transition:transform .5s}
+.prog-line-fill.filled{transform:scaleX(1)}
+
+/* CARD */
+.form-card{width:100%;max-width:620px;background:var(--navy-mid);border:1px solid var(--border);border-radius:2px;margin-top:2.5rem;position:relative;overflow:hidden;animation:card-in .5s ease}
+@keyframes card-in{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.card-top-bar{height:3px;background:linear-gradient(to right,transparent,var(--gold),transparent)}
+.card-inner{padding:2.5rem 2.5rem 2rem}
+@media(max-width:600px){.card-inner{padding:1.8rem 1.4rem 1.5rem}}
+.step-title{font-family:'Cinzel',serif;font-size:1.1rem;font-weight:600;letter-spacing:.12em;color:var(--gold);text-transform:uppercase;margin-bottom:.3rem}
+.step-desc{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1rem;color:var(--cream-dim);margin-bottom:1.8rem}
+.separator{height:1px;background:var(--border);margin:1.5rem 0}
+.section-heading{display:flex;align-items:center;gap:.8rem;margin:1.5rem 0 1rem}
+.section-heading span{font-family:'Cinzel',serif;font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold-dim);white-space:nowrap}
+.section-heading::before,.section-heading::after{content:'';flex:1;height:1px;background:var(--border)}
+.step-content{animation:step-in .4s ease}
+@keyframes step-in{from{opacity:0;transform:translateX(18px)}to{opacity:1;transform:translateX(0)}}
+
+/* MEMBER TYPE BTNS */
+.member-types{display:grid;grid-template-columns:1fr;gap:1rem}
+.member-type-btn{display:flex;align-items:flex-start;gap:1.2rem;padding:1.3rem 1.5rem;background:transparent;border:1px solid var(--border);border-radius:2px;cursor:pointer;text-align:left;color:var(--cream);transition:all .3s;position:relative;overflow:hidden}
+.member-type-btn::before{content:'';position:absolute;inset:0;background:var(--gold-glow);opacity:0;transition:opacity .3s}
+.member-type-btn:hover::before{opacity:1}
+.member-type-btn:hover{border-color:var(--border-hi)}
+.member-type-btn.selected{border-color:var(--gold);background:rgba(201,153,58,.08)}
+.member-type-btn.selected::after{content:'✓';position:absolute;top:12px;right:16px;color:var(--gold);font-size:1rem}
+.type-icon{width:42px;height:42px;flex-shrink:0;border:1px solid var(--border);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.2rem;color:var(--gold);transition:all .3s}
+.member-type-btn.selected .type-icon{border-color:var(--gold);background:rgba(201,153,58,.12)}
+.type-name{font-family:'Cinzel',serif;font-size:.85rem;letter-spacing:.1em;color:var(--cream);text-transform:uppercase;margin-bottom:.3rem}
+.type-desc{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:.9rem;color:var(--cream-dim);line-height:1.4}
+
+/* FORM FIELDS */
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem}
+.field-row.single{grid-template-columns:1fr}
+.field-row.triple{grid-template-columns:1fr 1fr 1fr}
+@media(max-width:500px){.field-row{grid-template-columns:1fr}.field-row.triple{grid-template-columns:1fr 1fr}}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-family:'Cinzel',serif;font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold)}
+.field label .req{color:var(--red);margin-left:2px}
+.field input,.field select,.field textarea{background:rgba(9,17,30,.6);border:1px solid var(--border);border-radius:2px;color:var(--cream);font-family:'EB Garamond',serif;font-size:1rem;padding:.65rem .9rem;transition:border-color .3s,box-shadow .3s;outline:none;width:100%;appearance:none;-webkit-appearance:none}
+.field input::placeholder,.field textarea::placeholder{color:rgba(176,168,136,.4)}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,153,58,.08)}
+.field select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23c9993a' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:2.2rem}
+.field select option{background:var(--navy);color:var(--cream)}
+.field textarea{resize:vertical;min-height:80px}
+.field-error{font-family:'EB Garamond',serif;font-size:.78rem;color:#e74c3c;margin-top:2px;display:none}
+.field.invalid .field-error{display:block}
+.field.invalid input,.field.invalid select{border-color:#e74c3c}
+.field-note{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:.82rem;color:rgba(176,168,136,.6);margin-top:2px}
+
+/* CAMERA TOOLBAR */
+.cam-toolbar{background:rgba(9,17,30,.6);border:1px solid var(--border);border-radius:2px;padding:1rem 1.1rem .8rem;margin-bottom:1.2rem}
+.cam-device-row{display:flex;align-items:flex-end;gap:.7rem;margin-bottom:.7rem}
+.cam-device-row .field{flex:1;margin-bottom:0}
+.cam-tool-btn{font-family:'Cinzel',serif;font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;padding:.65rem 1rem;background:transparent;border:1px solid var(--border);border-radius:2px;color:var(--cream-dim);cursor:pointer;white-space:nowrap;transition:all .2s;flex-shrink:0}
+.cam-tool-btn:hover{border-color:var(--gold);color:var(--gold)}
+.cam-meta-row{display:flex;align-items:center;gap:.8rem;flex-wrap:wrap}
+.cam-badge{font-family:'Cinzel',serif;font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;padding:3px 10px;border-radius:999px;border:1px solid var(--border);color:var(--cream-dim);transition:all .3s}
+.cam-badge.live{border-color:var(--green);color:var(--green)}
+.cam-badge.found{border-color:var(--gold);color:var(--gold);animation:pulse-b 1.5s ease 3}
+@keyframes pulse-b{0%,100%{box-shadow:0 0 0 0 rgba(201,153,58,0)}50%{box-shadow:0 0 0 5px rgba(201,153,58,.2)}}
+.cam-label{font-size:.75rem;color:var(--cream-dim);font-style:italic;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cam-flip-btn{font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;padding:4px 12px;background:rgba(201,153,58,.1);border:1px solid var(--border-hi);border-radius:999px;color:var(--gold);cursor:pointer;transition:all .2s}
+.cam-flip-btn:hover{background:rgba(201,153,58,.2)}
+
+/* PHOTO ZONE */
+.photo-zone{display:flex;flex-direction:column;align-items:center;gap:1.5rem}
+.photo-preview-ring{width:180px;height:180px;border-radius:50%;border:2px solid var(--border);padding:4px;position:relative;flex-shrink:0}
+.photo-preview-ring::before{content:'';position:absolute;inset:-6px;border-radius:50%;border:1px solid rgba(201,153,58,.15)}
+.photo-placeholder{width:100%;height:100%;border-radius:50%;background:rgba(9,17,30,.8);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--cream-dim)}
+.photo-placeholder svg{opacity:.4}
+.camera-view{display:none;flex-direction:column;align-items:center;gap:1rem;width:100%}
+.camera-view.active{display:flex}
+#videoEl{width:260px;height:260px;border-radius:50%;object-fit:cover;border:2px solid var(--gold);background:#000}
+.photo-controls{display:flex;flex-wrap:wrap;gap:.8rem;justify-content:center}
+.photo-captured-state{display:flex;flex-direction:column;align-items:center;gap:1rem}
+.captured-img-ring{width:160px;height:160px;border-radius:50%;border:2px solid var(--gold);padding:4px;margin:0 auto 1rem;box-shadow:0 0 24px rgba(201,153,58,.2)}
+.captured-img-ring img{width:100%;height:100%;border-radius:50%;object-fit:cover}
+#photoCanvas{display:none}
+
+/* BUTTONS */
+.btn{font-family:'Cinzel',serif;font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;padding:.75rem 1.8rem;border:1px solid var(--gold);border-radius:2px;cursor:pointer;transition:all .3s;position:relative;overflow:hidden}
+.btn-gold{background:var(--gold);color:var(--navy)}
+.btn-gold:hover{background:var(--gold-bright);border-color:var(--gold-bright);box-shadow:0 4px 24px rgba(201,153,58,.3)}
+.btn-outline{background:transparent;color:var(--gold)}
+.btn-outline:hover{background:rgba(201,153,58,.08)}
+.btn-ghost{background:transparent;color:var(--cream-dim);border-color:var(--border);font-size:.65rem}
+.btn-ghost:hover{border-color:var(--border-hi);color:var(--cream)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn-row{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-top:2rem;flex-wrap:wrap}
+.summary-badge{display:inline-flex;align-items:center;gap:8px;padding:.5rem 1.2rem;border:1px solid var(--border-hi);border-radius:999px;font-family:'Cinzel',serif;font-size:.72rem;letter-spacing:.1em;color:var(--gold);text-transform:uppercase;background:rgba(201,153,58,.06)}
+
+/* SUCCESS */
+.success-screen{display:none;flex-direction:column;align-items:center;text-align:center;padding:3rem 2rem;gap:1.2rem}
+.success-screen.active{display:flex}
+.success-ring{width:90px;height:90px;border-radius:50%;border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;animation:pulse-ring 2s ease infinite}
+@keyframes pulse-ring{0%,100%{box-shadow:0 0 0 0 rgba(201,153,58,.4)}50%{box-shadow:0 0 0 14px rgba(201,153,58,0)}}
+.success-ring svg{color:var(--gold)}
+.success-title{font-family:'Cinzel',serif;font-size:1.5rem;font-weight:600;color:var(--cream);letter-spacing:.06em}
+.success-verse{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1.1rem;color:var(--cream-dim);max-width:380px;line-height:1.6}
+.success-ref{font-family:'Cinzel',serif;font-size:.7rem;letter-spacing:.15em;color:var(--gold-dim);text-transform:uppercase}
+.export-btn-wrap{margin-top:1.5rem;display:flex;justify-content:center;gap:.6rem;flex-wrap:wrap}
+
+/* FLOATING EXPORT */
+.export-panel{position:fixed;bottom:1.5rem;right:1.5rem;z-index:200;display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.export-toggle{background:var(--navy-mid);border:1px solid var(--border-hi);border-radius:2px;padding:.55rem 1rem;font-family:'Cinzel',serif;font-size:.62rem;letter-spacing:.12em;color:var(--gold);text-transform:uppercase;cursor:pointer;transition:all .2s}
+.export-toggle:hover{background:var(--navy-light)}
+.export-menu{background:var(--navy-mid);border:1px solid var(--border-hi);border-radius:2px;overflow:hidden;max-height:0;transition:max-height .3s;width:220px}
+.export-menu.open{max-height:260px}
+.exp-item{display:flex;align-items:center;gap:10px;padding:.7rem 1rem;border-bottom:1px solid var(--border);cursor:pointer;transition:background .2s}
+.exp-item:last-child{border-bottom:none}
+.exp-item:hover{background:rgba(201,153,58,.06)}
+.exp-icon{width:30px;height:30px;border-radius:2px;display:flex;align-items:center;justify-content:center;font-family:'Cinzel',serif;font-size:.55rem;letter-spacing:.04em;flex-shrink:0}
+.ico-xlsx{background:rgba(39,174,96,.15);color:#27ae60;border:1px solid rgba(39,174,96,.3)}
+.ico-csv{background:rgba(52,152,219,.15);color:#3498db;border:1px solid rgba(52,152,219,.3)}
+.ico-json{background:rgba(201,153,58,.15);color:var(--gold);border:1px solid var(--border)}
+.exp-name{font-family:'Cinzel',serif;font-size:.65rem;letter-spacing:.1em;color:var(--cream);text-transform:uppercase;display:block}
+.exp-desc{font-size:.72rem;color:var(--cream-dim);font-style:italic}
+
+/* TOP BADGES */
+.record-count{position:fixed;top:1.2rem;right:1.2rem;background:rgba(15,29,48,.9);border:1px solid var(--border);padding:.5rem 1rem;border-radius:2px;font-family:'Cinzel',serif;font-size:.65rem;letter-spacing:.12em;color:var(--gold);text-transform:uppercase;z-index:100}
+.record-count span{color:var(--cream)}
+.sheets-setup-btn{position:fixed;top:1.2rem;left:1.2rem;background:rgba(15,29,48,.9);border:1px solid var(--border);padding:.5rem 1rem;border-radius:2px;font-family:'Cinzel',serif;font-size:.62rem;letter-spacing:.12em;color:var(--cream-dim);text-transform:uppercase;z-index:100;cursor:pointer;transition:all .3s}
+.sheets-setup-btn:hover{border-color:var(--border-hi);color:var(--gold)}
+.sheets-connected{color:var(--green)!important;border-color:rgba(46,204,113,.4)!important}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(5,10,18,.85);z-index:500;align-items:center;justify-content:center;padding:1rem}
+.modal-overlay.open{display:flex}
+.modal-box{background:var(--navy-mid);border:1px solid var(--border-hi);border-radius:2px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;position:relative;animation:card-in .35s ease}
+.modal-top{height:3px;background:linear-gradient(to right,transparent,var(--gold),transparent)}
+.modal-body{padding:2rem}
+.modal-title{font-family:'Cinzel',serif;font-size:1rem;letter-spacing:.12em;color:var(--gold);text-transform:uppercase;margin-bottom:.3rem}
+.modal-sub{font-family:'Cormorant Garamond',serif;font-style:italic;color:var(--cream-dim);font-size:.95rem;margin-bottom:1.5rem}
+.step-block{background:rgba(9,17,30,.5);border:1px solid var(--border);border-radius:2px;padding:1.1rem 1.2rem;margin-bottom:1rem}
+.step-block-num{font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:.18em;color:var(--gold-dim);text-transform:uppercase;margin-bottom:.5rem}
+.step-block p{font-size:.92rem;color:var(--cream-dim);line-height:1.6;margin-bottom:.6rem}
+.code-block{background:rgba(5,10,18,.8);border:1px solid rgba(201,153,58,.15);border-radius:2px;padding:.8rem 1rem;font-family:'Courier New',monospace;font-size:.72rem;color:var(--cream-dim);line-height:1.6;white-space:pre;overflow-x:auto;margin-top:.6rem;position:relative}
+.copy-btn{position:absolute;top:8px;right:8px;background:var(--gold);border:none;padding:4px 10px;border-radius:2px;font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:.1em;color:var(--navy);cursor:pointer;text-transform:uppercase}
+.copy-btn:hover{background:var(--gold-bright)}
+.url-input-wrap{display:flex;gap:8px;margin-top:1rem}
+.url-input-wrap input{flex:1;background:rgba(9,17,30,.6);border:1px solid var(--border);border-radius:2px;color:var(--cream);font-family:'EB Garamond',serif;font-size:.9rem;padding:.6rem .9rem;outline:none}
+.url-input-wrap input:focus{border-color:var(--gold)}
+.sheets-status{margin-top:.8rem;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:.88rem;min-height:1.2rem}
+.sheets-status.ok{color:var(--green)}.sheets-status.err{color:#e74c3c}
+.modal-close{position:absolute;top:14px;right:14px;background:none;border:none;color:var(--cream-dim);font-size:1.2rem;cursor:pointer;line-height:1;transition:color .2s}
+.modal-close:hover{color:var(--cream)}
+
+/* PRINT CARD */
+@media print{body *{visibility:hidden!important}#printCard,#printCard *{visibility:visible!important}#printCard{position:fixed!important;inset:0!important;display:flex!important;align-items:center!important;justify-content:center!important;background:white!important}}
+#printCard{display:none;position:fixed;inset:0;background:rgba(5,10,18,.9);z-index:600;align-items:center;justify-content:center;padding:1rem}
+#printCard.open{display:flex}
+.card-paper{width:380px;background:#fff;border-radius:4px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5);font-family:'EB Garamond',Georgia,serif;color:#1a1a1a}
+.card-hdr-band{background:#09111e;padding:1.2rem 1.4rem 1rem;text-align:center}
+.card-cross{display:inline-block;width:22px;height:22px;position:relative;margin-bottom:6px}
+.card-cross::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:2px;height:100%;background:#c9993a}
+.card-cross::after{content:'';position:absolute;top:33%;left:50%;transform:translate(-50%,-50%);width:80%;height:2px;background:#c9993a}
+.card-ch-name{font-family:'Cinzel',serif;font-size:.65rem;letter-spacing:.25em;color:#c9993a;text-transform:uppercase;display:block}
+.card-tagline{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:.72rem;color:rgba(240,232,212,.5);display:block;margin-top:2px}
+.card-gold-strip{height:2px;background:linear-gradient(to right,transparent,#c9993a,transparent)}
+.card-body{padding:1.4rem}
+.card-photo-row{display:flex;align-items:center;gap:1.1rem;margin-bottom:1rem}
+.card-photo-wrap{width:72px;height:72px;flex-shrink:0;border-radius:50%;border:2px solid #c9993a;padding:2px;overflow:hidden}
+.card-photo-wrap img{width:100%;height:100%;border-radius:50%;object-fit:cover}
+.card-initials{width:100%;height:100%;border-radius:50%;background:#09111e;display:flex;align-items:center;justify-content:center;font-family:'Cinzel',serif;font-size:1.2rem;color:#c9993a}
+.card-name{font-family:'Cinzel',serif;font-size:1rem;font-weight:600;color:#09111e;line-height:1.2;margin-bottom:4px}
+.card-type-pill{display:inline-block;font-family:'Cinzel',serif;font-size:.58rem;letter-spacing:.14em;text-transform:uppercase;color:#fff;background:#09111e;padding:3px 10px;border-radius:999px}
+.card-divider{height:1px;background:rgba(201,153,58,.2);margin:.9rem 0}
+.card-fields{display:grid;grid-template-columns:1fr 1fr;gap:.6rem 1rem}
+.card-field-label{font-family:'Cinzel',serif;font-size:.52rem;letter-spacing:.15em;text-transform:uppercase;color:#8a6520;display:block;margin-bottom:1px}
+.card-field-val{font-size:.82rem;color:#1a1a1a}
+.card-footer-band{background:#f5f0e8;border-top:1px solid rgba(201,153,58,.2);padding:.7rem 1.4rem;display:flex;justify-content:space-between;align-items:center}
+.card-id{font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:.12em;color:#8a6520}
+.card-date{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:.72rem;color:#8a6520}
+.card-barcode{display:flex;gap:1px;align-items:flex-end;height:18px}
+.print-actions{display:flex;gap:.8rem;justify-content:center;margin-top:1.2rem}
+
+/* TOAST */
+.toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(100px);background:var(--navy-light);border:1px solid var(--border-hi);color:var(--cream);padding:.8rem 1.5rem;border-radius:2px;font-family:'EB Garamond',serif;font-size:.95rem;z-index:999;transition:transform .4s}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+/* FOOTER */
+.site-footer{text-align:center;padding:2rem 1rem;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:.9rem;color:rgba(176,168,136,.35);position:relative;z-index:1}
 </style>
 </head>
 <body>
-
-<div class="cross-ray-h"></div>
-
+<div class="ray-h"></div>
 <div class="particles" id="particles"></div>
 
 <button class="sheets-setup-btn" id="sheetsBtn" onclick="openSheetsModal()">&#9881; Google Sheets Setup</button>
-
 <div class="record-count" id="recordCount">Records <span>0</span></div>
 
-<!-- Google Sheets Setup Modal -->
+<div class="page-wrap">
+  <header class="site-header">
+    <div class="church-emblem">
+      <div class="emblem-cross"><div class="emblem-ring"></div></div>
+      <span class="church-name">Good Jesus Miracle Center</span>
+    </div>
+    <h1 class="page-title">Welcome Home</h1>
+    <p class="page-subtitle">We are glad you are here. Let us know you.</p>
+    <div class="gold-line"></div>
+    <div class="progress-track" id="progressTrack">
+      <div class="prog-step"><div class="prog-dot active" id="dot0">1</div><div class="prog-label active" id="lbl0">Identity</div></div>
+      <div class="prog-line"><div class="prog-line-fill" id="line0"></div></div>
+      <div class="prog-step"><div class="prog-dot" id="dot1">2</div><div class="prog-label" id="lbl1">Personal</div></div>
+      <div class="prog-line"><div class="prog-line-fill" id="line1"></div></div>
+      <div class="prog-step"><div class="prog-dot" id="dot2">3</div><div class="prog-label" id="lbl2">Contact</div></div>
+      <div class="prog-line"><div class="prog-line-fill" id="line2"></div></div>
+      <div class="prog-step"><div class="prog-dot" id="dot3">4</div><div class="prog-label" id="lbl3">Photo</div></div>
+    </div>
+  </header>
+
+  <div class="form-card" id="formCard">
+    <div class="card-top-bar"></div>
+    <div class="card-inner">
+
+      <!-- STEP 1: Member Type -->
+      <div id="step1" class="step-content">
+        <div class="step-title">Who Are You?</div>
+        <p class="step-desc">Select the category that best describes your relationship with us.</p>
+        <div class="member-types">
+          <button class="member-type-btn" onclick="selectType(this,'new_convert')" type="button">
+            <div class="type-icon">&#10022;</div>
+            <div><div class="type-name">New Convert</div><div class="type-desc">I have recently given my life to Christ and this is my first time joining a church community.</div></div>
+          </button>
+          <button class="member-type-btn" onclick="selectType(this,'new_member')" type="button">
+            <div class="type-icon">&#10761;</div>
+            <div><div class="type-name">New Member</div><div class="type-desc">I am a believer transferring from another church and would like to become a member here.</div></div>
+          </button>
+          <button class="member-type-btn" onclick="selectType(this,'existing_member')" type="button">
+            <div class="type-icon">&#10033;</div>
+            <div><div class="type-name">Existing Member</div><div class="type-desc">I am already a member and would like to update or complete my profile in our records.</div></div>
+          </button>
+        </div>
+        <div class="btn-row"><div></div><button class="btn btn-gold" onclick="goStep(2)" type="button">Continue &rarr;</button></div>
+      </div>
+
+      <!-- STEP 2: Personal -->
+      <div id="step2" class="step-content" style="display:none">
+        <div class="step-title">Personal Details</div>
+        <p class="step-desc">Your bio data — held with care and confidentiality.</p>
+        <div class="section-heading"><span>Full Name</span></div>
+        <div class="field-row">
+          <div class="field"><label>Title</label><select name="title"><option value="">Select</option><option>Mr.</option><option>Mrs.</option><option>Miss</option><option>Dr.</option><option>Prof.</option><option>Rev.</option><option>Pastor</option></select></div>
+          <div class="field" id="f-firstname"><label>First Name <span class="req">*</span></label><input type="text" name="firstname" placeholder="Emmanuel"><div class="field-error">Please enter first name</div></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Middle Name</label><input type="text" name="middlename" placeholder="Optional"></div>
+          <div class="field" id="f-surname"><label>Surname <span class="req">*</span></label><input type="text" name="surname" placeholder="Asante"><div class="field-error">Please enter surname</div></div>
+        </div>
+        <div class="section-heading"><span>Identity</span></div>
+        <div class="field-row triple">
+          <div class="field" id="f-dob"><label>Date of Birth <span class="req">*</span></label><input type="date" name="dob"><div class="field-error">Required</div></div>
+          <div class="field" id="f-gender"><label>Gender <span class="req">*</span></label><select name="gender"><option value="">Select</option><option>Male</option><option>Female</option></select><div class="field-error">Required</div></div>
+          <div class="field"><label>Marital Status</label><select name="marital"><option value="">Select</option><option>Single</option><option>Married</option><option>Widowed</option><option>Divorced</option></select></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Nationality</label><input type="text" name="nationality" placeholder="Ghanaian"></div>
+          <div class="field"><label>Occupation</label><input type="text" name="occupation" placeholder="e.g. Teacher, Engineer"></div>
+        </div>
+        <div class="section-heading" id="salvation-section" style="display:none"><span>Faith Journey</span></div>
+        <div class="field-row" id="salvation-fields" style="display:none">
+          <div class="field"><label>Date of Salvation</label><input type="date" name="salvation_date"><div class="field-note">When did you give your life to Christ?</div></div>
+          <div class="field"><label>Baptism Status</label><select name="baptism"><option value="">Select</option><option>Not yet baptised</option><option>Baptised (Water)</option><option>Baptised (Water &amp; Spirit)</option></select></div>
+        </div>
+        <div class="field-row single" id="prev-church-row" style="display:none">
+          <div class="field"><label>Previous Church</label><input type="text" name="prev_church" placeholder="Name of your former church"></div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-ghost" onclick="goStep(1)" type="button">&larr; Back</button>
+          <button class="btn btn-gold"  onclick="goStep(3)" type="button">Continue &rarr;</button>
+        </div>
+      </div>
+
+      <!-- STEP 3: Contact -->
+      <div id="step3" class="step-content" style="display:none">
+        <div class="step-title">Contact &amp; Location</div>
+        <p class="step-desc">How may we reach you and where do you reside?</p>
+        <div class="section-heading"><span>Communication</span></div>
+        <div class="field-row">
+          <div class="field" id="f-phone"><label>Phone Number <span class="req">*</span></label><input type="tel" name="phone" placeholder="+233 24 000 0000"><div class="field-error">Phone number is required</div></div>
+          <div class="field"><label>Alternate Phone</label><input type="tel" name="phone2" placeholder="+233 50 000 0000"></div>
+        </div>
+        <div class="field-row single">
+          <div class="field"><label>Email Address</label><input type="email" name="email" placeholder="you@example.com"></div>
+        </div>
+        <div class="section-heading"><span>Residence</span></div>
+        <div class="field-row">
+          <div class="field" id="f-place-live"><label>Place You Live <span class="req">*</span></label><input type="text" name="place_live" placeholder="e.g. Adum, Bantama, Suame"><div class="field-error">Please enter where you live</div></div>
+          <div class="field" id="f-house-number"><label>House Number <span class="req">*</span></label><input type="text" name="house_number" placeholder="e.g. No. 14, Block C"><div class="field-error">Please enter your house number</div></div>
+        </div>
+        <div class="field-row single">
+          <div class="field" id="f-landmark"><label>Direction / Nearest Landmark <span class="req">*</span></label><input type="text" name="landmark" placeholder="e.g. Behind Kejetia Market, Near Ashanti Mall"><div class="field-error">Please provide a direction or landmark</div></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Region</label><select name="region"><option value="">Select</option><option>Ashanti</option><option>Greater Accra</option><option>Central</option><option>Western</option><option>Eastern</option><option>Northern</option><option>Upper East</option><option>Upper West</option><option>Volta</option><option>Brong-Ahafo</option><option>Bono East</option><option>Ahafo</option><option>Savannah</option><option>North East</option><option>Oti</option><option>Western North</option></select></div>
+          <div class="field"><label>Digital Address (GPS)</label><input type="text" name="digital_address" placeholder="e.g. AK-123-4567"></div>
+        </div>
+        <div class="section-heading"><span>Emergency Contact</span></div>
+        <div class="field-row">
+          <div class="field"><label>Next of Kin Name</label><input type="text" name="kin_name" placeholder="Full name"></div>
+          <div class="field"><label>Relationship</label><select name="kin_rel"><option value="">Select</option><option>Spouse</option><option>Parent</option><option>Sibling</option><option>Child</option><option>Friend</option><option>Other</option></select></div>
+        </div>
+        <div class="field-row single"><div class="field"><label>Next of Kin Phone</label><input type="tel" name="kin_phone" placeholder="+233 24 000 0000"></div></div>
+        <div class="section-heading"><span>Church Life</span></div>
+        <div class="field-row">
+          <div class="field"><label>Ministry / Department Interest</label><select name="ministry"><option value="">Select</option><option>Worship &amp; Praise</option><option>Children's Ministry</option><option>Youth Ministry</option><option>Ushering &amp; Protocol</option><option>Prayer &amp; Intercession</option><option>Media &amp; Technology</option><option>Welfare &amp; Outreach</option><option>Drama &amp; Creative Arts</option><option>Choir</option><option>Not sure yet</option></select></div>
+          <div class="field"><label>How Did You Find Us?</label><select name="referral"><option value="">Select</option><option>Friend / Family</option><option>Social Media</option><option>Radio / TV</option><option>Walked In</option><option>Crusade / Event</option><option>Online Search</option><option>Other</option></select></div>
+        </div>
+        <div class="field-row single"><div class="field"><label>Prayer Request (Optional)</label><textarea name="prayer" placeholder="Share a prayer request with us…"></textarea></div></div>
+        <div class="btn-row">
+          <button class="btn btn-ghost" onclick="goStep(2)" type="button">&larr; Back</button>
+          <button class="btn btn-gold"  onclick="goStep(4)" type="button">Continue &rarr;</button>
+        </div>
+      </div>
+
+      <!-- STEP 4: Photo -->
+      <div id="step4" class="step-content" style="display:none">
+        <div class="step-title">Profile Photo</div>
+        <p class="step-desc">Use any connected camera — USB device, built-in, or mobile front/back.</p>
+
+        <!-- Camera Toolbar -->
+        <div class="cam-toolbar">
+          <div class="cam-device-row">
+            <div class="field" style="margin-bottom:0">
+              <label>Camera Source</label>
+              <select id="cameraSelect" onchange="onCameraChange()">
+                <option value="">&#9654; Select a camera to begin</option>
+              </select>
+            </div>
+            <button class="cam-tool-btn" onclick="refreshCameras()" type="button" title="Plug in USB camera then click Refresh">&#8635; Refresh</button>
+          </div>
+          <div class="cam-meta-row">
+            <span class="cam-badge" id="camBadge">Scanning&hellip;</span>
+            <span class="cam-label" id="camLabel">No camera selected</span>
+            <button class="cam-flip-btn" id="btnFlip" onclick="flipCamera()" type="button" style="display:none">&#8646; Flip</button>
+          </div>
+        </div>
+
+        <div class="photo-zone">
+          <div id="photoPlaceholderState">
+            <div class="photo-preview-ring">
+              <div class="photo-placeholder">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+                <span style="font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:.1em;opacity:.5">No Photo</span>
+              </div>
+            </div>
+          </div>
+          <div id="capturedState" class="photo-captured-state" style="display:none">
+            <div class="captured-img-ring" id="capturedRing"><img id="capturedImg" src="" alt="Profile photo"></div>
+            <div class="summary-badge"><span>&#10003;</span> Photo captured</div>
+          </div>
+          <div class="camera-view" id="cameraView">
+            <video id="videoEl" autoplay playsinline muted></video>
+            <p style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:.9rem;color:var(--cream-dim);text-align:center">Position your face within the circle, then capture.</p>
+          </div>
+          <canvas id="photoCanvas"></canvas>
+          <div class="photo-controls">
+            <button class="btn btn-outline" id="btnStartCamera" onclick="startCamera()" type="button">&#9654; Open Camera</button>
+            <button class="btn btn-gold"    id="btnCapture"     onclick="capturePhoto()" type="button" style="display:none">&#11044; Capture</button>
+            <button class="btn btn-ghost"   id="btnRetake"      onclick="retakePhoto()"  type="button" style="display:none">&#8635; Retake</button>
+            <label class="btn btn-ghost" style="cursor:pointer">&#8682; Upload Photo<input type="file" accept="image/*" id="photoUpload" style="display:none" onchange="handleUpload(event)"></label>
+          </div>
+          <p class="field-note" style="text-align:center;margin-top:.5rem">Supports USB cameras (Hikvision, Logitech, etc.), built-in webcam, and mobile front/back camera.</p>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-ghost" onclick="goStep(3)" type="button">&larr; Back</button>
+          <button class="btn btn-gold"  onclick="submitForm()" type="button">Submit Registration &#10022;</button>
+        </div>
+      </div>
+
+      <!-- SUCCESS -->
+      <div class="success-screen" id="successScreen">
+        <div class="success-ring">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div class="success-title">You Are Registered</div>
+        <div class="gold-line" style="width:60px"></div>
+        <p class="success-verse">"I was glad when they said unto me, let us go into the house of the Lord."</p>
+        <p class="success-ref">Psalm 122:1</p>
+        <div id="memberBadge" class="summary-badge" style="margin-top:.5rem"></div>
+        <div class="export-btn-wrap">
+          <button class="btn btn-gold"    onclick="openPrintCard()"  type="button">&#9646; Print Card</button>
+          <button class="btn btn-outline" onclick="registerAnother()" type="button">Register Another</button>
+          <button class="btn btn-ghost"   onclick="exportExcel()"    type="button" style="border-color:rgba(39,174,96,.5);color:#27ae60">&#8645; Excel</button>
+          <button class="btn btn-ghost"   onclick="exportCSV()"      type="button" style="border-color:rgba(52,152,219,.5);color:#3498db">&#8645; CSV</button>
+          <button class="btn btn-ghost"   onclick="exportJSON()"     type="button">&#8618; JSON</button>
+          <button class="btn btn-ghost"   onclick="clearAll()"       type="button" style="border-color:rgba(192,57,43,.3);color:rgba(192,57,43,.7)">&#9249; Clear</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="site-footer">&ldquo;You are no longer strangers and foreigners, but fellow citizens with the saints.&rdquo; &mdash; Eph. 2:19</div>
+</div>
+
+<!-- Floating Export Panel -->
+<div class="export-panel" id="exportPanel" style="display:none">
+  <div class="export-menu" id="exportMenu">
+    <div class="exp-item" onclick="exportExcel()"><div class="exp-icon ico-xlsx">XLSX</div><div><span class="exp-name">Excel Workbook</span><span class="exp-desc">Formatted .xlsx file</span></div></div>
+    <div class="exp-item" onclick="exportCSV()"><div class="exp-icon ico-csv">CSV</div><div><span class="exp-name">CSV Spreadsheet</span><span class="exp-desc">Opens in any app</span></div></div>
+    <div class="exp-item" onclick="exportJSON()"><div class="exp-icon ico-json">JSON</div><div><span class="exp-name">JSON Data</span><span class="exp-desc">Full record backup</span></div></div>
+  </div>
+  <button class="export-toggle" onclick="toggleExport()" type="button">&#8645; Export &nbsp;<span id="expCount">0</span>&nbsp;Records</button>
+</div>
+
+<!-- Google Sheets Modal -->
 <div class="modal-overlay" id="sheetsModal">
   <div class="modal-box">
     <div class="modal-top"></div>
@@ -1153,140 +462,87 @@
     <div class="modal-body">
       <div class="modal-title">Google Sheets Integration</div>
       <p class="modal-sub">Send every registration directly to a live Google Sheet in real time.</p>
-
+      <div class="step-block"><div class="step-block-num">Step 1 &mdash; Create your Google Sheet</div><p>Open <strong style="color:var(--cream)">Google Sheets</strong>, create a new spreadsheet named <em>GJMC Member Records</em>. Leave the first row blank &mdash; the script creates headers automatically.</p></div>
       <div class="step-block">
-        <div class="step-block-num">Step 1 &mdash; Create your Google Sheet</div>
-        <p>Open <strong style="color:var(--cream)">Google Sheets</strong>, create a new spreadsheet, and name it <em>GJMC Member Records</em>. Leave the first row blank — the script will create headers automatically.</p>
-      </div>
-
-      <div class="step-block">
-        <div class="step-block-num">Step 2 &mdash; Open Apps Script</div>
-        <p>In your sheet, click <strong style="color:var(--cream)">Extensions &rarr; Apps Script</strong>. Delete any existing code, then paste in the script below and click <strong style="color:var(--cream)">Save</strong>.</p>
+        <div class="step-block-num">Step 2 &mdash; Open Apps Script &amp; paste code</div>
+        <p>Click <strong style="color:var(--cream)">Extensions &rarr; Apps Script</strong>. Delete existing code, paste the script below, then save.</p>
         <div class="code-block" id="appsScriptCode">function doPost(e) {
   try {
-    var sheet = SpreadsheetApp
-      .getActiveSpreadsheet()
-      .getActiveSheet();
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
     var data = JSON.parse(e.postData.contents);
-
-    var headers = [
-      'ID','Timestamp','Member Type','Title',
-      'First Name','Middle Name','Surname','Date of Birth',
-      'Gender','Marital Status','Nationality','Occupation',
-      'Salvation Date','Baptism','Prev Church','Phone',
-      'Phone 2','Email','Area','Region','Digital Address',
-      'Next of Kin','Kin Relation','Kin Phone',
-      'Ministry','Referral','Prayer Request','Has Photo'
-    ];
-
-    if(sheet.getLastRow() === 0) {
+    var headers = ['ID','Timestamp','Member Type','Title','First Name',
+      'Middle Name','Surname','DOB','Gender','Marital','Nationality',
+      'Occupation','Phone','Phone 2','Email','Place','House No',
+      'Landmark','Region','GPS Address','Ministry','Referral',
+      'Next of Kin','Kin Relation','Kin Phone','Salvation Date',
+      'Baptism','Prev Church','Prayer','Has Photo'];
+    if (sheet.getLastRow() === 0) {
       sheet.appendRow(headers);
       sheet.getRange(1,1,1,headers.length)
         .setFontWeight('bold')
         .setBackground('#09111e')
         .setFontColor('#c9993a');
     }
-
-    sheet.appendRow([
-      data.id, data.timestamp, data.member_type,
-      data.title, data.firstname, data.middlename,
-      data.surname, data.dob, data.gender,
-      data.marital, data.nationality, data.occupation,
-      data.salvation_date, data.baptism, data.prev_church,
-      data.phone, data.phone2, data.email,
-      data.area, data.region, data.digital_address,
-      data.kin_name, data.kin_rel, data.kin_phone,
-      data.ministry, data.referral, data.prayer,
-      data.photo ? 'Yes' : 'No'
-    ]);
-
+    sheet.appendRow([data.id,data.timestamp,data.member_type,
+      data.title,data.firstname,data.middlename,data.surname,
+      data.dob,data.gender,data.marital,data.nationality,
+      data.occupation,data.phone,data.phone2,data.email,
+      data.place_live,data.house_number,data.landmark,
+      data.region,data.digital_address,data.ministry,
+      data.referral,data.kin_name,data.kin_rel,data.kin_phone,
+      data.salvation_date,data.baptism,data.prev_church,
+      data.prayer,data.photo?'Yes':'No']);
     return ContentService
       .createTextOutput(JSON.stringify({status:'ok'}))
       .setMimeType(ContentService.MimeType.JSON);
   } catch(err) {
     return ContentService
-      .createTextOutput(JSON.stringify({status:'error',message:err.toString()}))
+      .createTextOutput(JSON.stringify({status:'error',msg:err.toString()}))
       .setMimeType(ContentService.MimeType.JSON);
   }
-}</div>
-        <button class="btn btn-ghost" style="margin-top:0.6rem;font-size:0.6rem" onclick="copyScript()">&#9112; Copy Script</button>
+}<button class="copy-btn" onclick="copyScript()">Copy</button></div>
       </div>
-
+      <div class="step-block"><div class="step-block-num">Step 3 &mdash; Deploy as Web App</div><p>Click <strong style="color:var(--cream)">Deploy &rarr; New Deployment</strong>. Type: <em>Web App</em>. Execute as: <em>Me</em>. Access: <em>Anyone</em>. Click Deploy and copy the URL.</p></div>
       <div class="step-block">
-        <div class="step-block-num">Step 3 &mdash; Deploy as Web App</div>
-        <p>Click <strong style="color:var(--cream)">Deploy &rarr; New Deployment</strong>. Select type: <em>Web App</em>. Set <em>Execute as: Me</em> and <em>Who has access: Anyone</em>. Click <strong style="color:var(--cream)">Deploy</strong> and copy the Web App URL.</p>
-      </div>
-
-      <div class="step-block">
-        <div class="step-block-num">Step 4 &mdash; Paste your Web App URL below</div>
+        <div class="step-block-num">Step 4 &mdash; Paste URL below</div>
         <div class="url-input-wrap">
-          <input type="url" id="sheetsUrl" placeholder="https://script.google.com/macros/s/AKfy.../exec">
-          <button class="btn btn-gold" style="padding:0.6rem 1.2rem;font-size:0.65rem" onclick="saveSheetUrl()">Save</button>
+          <input type="url" id="sheetsUrl" placeholder="https://script.google.com/macros/s/…/exec">
+          <button class="btn btn-gold" style="padding:.6rem 1.2rem;font-size:.65rem" onclick="saveSheetUrl()">Save</button>
         </div>
         <div class="sheets-status" id="sheetsStatus"></div>
       </div>
-
-      <div style="display:flex;justify-content:flex-end;margin-top:1rem">
-        <button class="btn btn-ghost" onclick="closeSheetsModal()">Close</button>
-      </div>
+      <div style="display:flex;justify-content:flex-end;margin-top:1rem"><button class="btn btn-ghost" onclick="closeSheetsModal()">Close</button></div>
     </div>
   </div>
 </div>
 
-<!-- Print Member Card -->
+<!-- Print Card -->
 <div id="printCard">
   <div style="display:flex;flex-direction:column;align-items:center;gap:1rem">
-    <div class="card-paper" id="cardPaper">
-      <div class="card-header-band">
+    <div class="card-paper">
+      <div class="card-hdr-band">
         <div class="card-cross"></div>
-        <span class="card-church-name">Good Jesus Miracle Center</span>
+        <span class="card-ch-name">Good Jesus Miracle Center</span>
         <span class="card-tagline">Member Identity Card</span>
       </div>
       <div class="card-gold-strip"></div>
       <div class="card-body">
         <div class="card-photo-row">
-          <div class="card-photo-wrap">
-            <img id="cardPhoto" src="" alt="" style="display:none">
-            <div class="card-photo-initials" id="cardInitials"></div>
-          </div>
-          <div>
-            <div class="card-name" id="cardName"></div>
-            <div class="card-type-pill" id="cardTypePill"></div>
-          </div>
+          <div class="card-photo-wrap"><img id="cardPhoto" src="" alt="" style="display:none"><div class="card-initials" id="cardInitials"></div></div>
+          <div><div class="card-name" id="cardName"></div><div class="card-type-pill" id="cardTypePill"></div></div>
         </div>
         <div class="card-divider"></div>
         <div class="card-fields">
-          <div>
-            <span class="card-field-label">Date of Birth</span>
-            <span class="card-field-val" id="cardDob">—</span>
-          </div>
-          <div>
-            <span class="card-field-label">Gender</span>
-            <span class="card-field-val" id="cardGender">—</span>
-          </div>
-          <div>
-            <span class="card-field-label">Phone</span>
-            <span class="card-field-val" id="cardPhone">—</span>
-          </div>
-          <div>
-            <span class="card-field-label">Occupation</span>
-            <span class="card-field-val" id="cardOccupation">—</span>
-          </div>
-          <div>
-            <span class="card-field-label">Ministry</span>
-            <span class="card-field-val" id="cardMinistry">—</span>
-          </div>
-          <div>
-            <span class="card-field-label">Area</span>
-            <span class="card-field-val" id="cardArea">—</span>
-          </div>
+          <div><span class="card-field-label">Date of Birth</span><span class="card-field-val" id="cardDob">—</span></div>
+          <div><span class="card-field-label">Gender</span><span class="card-field-val" id="cardGender">—</span></div>
+          <div><span class="card-field-label">Phone</span><span class="card-field-val" id="cardPhone">—</span></div>
+          <div><span class="card-field-label">Occupation</span><span class="card-field-val" id="cardOccupation">—</span></div>
+          <div><span class="card-field-label">Ministry</span><span class="card-field-val" id="cardMinistry">—</span></div>
+          <div><span class="card-field-label">Area</span><span class="card-field-val" id="cardArea">—</span></div>
         </div>
       </div>
       <div class="card-footer-band">
-        <div>
-          <div class="card-id" id="cardId"></div>
-          <div class="card-date" id="cardDateJoined"></div>
-        </div>
+        <div><div class="card-id" id="cardId"></div><div class="card-date" id="cardDateJoined"></div></div>
         <div class="card-barcode" id="cardBarcode"></div>
       </div>
     </div>
@@ -1297,866 +553,422 @@
   </div>
 </div>
 
-<div class="page-wrap">
-
-  <!-- HEADER -->
-  <header class="site-header">
-    <div class="church-emblem">
-      <div class="emblem-cross">
-        <div class="emblem-ring"></div>
-      </div>
-      <span class="church-name">Good Jesus Miracle Center</span>
-    </div>
-
-    <h1 class="page-title">Welcome Home</h1>
-    <p class="page-subtitle">We are glad you are here. Let us know you.</p>
-    <div class="gold-line"></div>
-
-    <!-- Progress -->
-    <div class="progress-track" id="progressTrack">
-      <div class="prog-step">
-        <div class="prog-dot active" id="dot0">1</div>
-        <div class="prog-label active" id="lbl0">Identity</div>
-      </div>
-      <div class="prog-line"><div class="prog-line-fill" id="line0"></div></div>
-      <div class="prog-step">
-        <div class="prog-dot" id="dot1">2</div>
-        <div class="prog-label" id="lbl1">Personal</div>
-      </div>
-      <div class="prog-line"><div class="prog-line-fill" id="line1"></div></div>
-      <div class="prog-step">
-        <div class="prog-dot" id="dot2">3</div>
-        <div class="prog-label" id="lbl2">Contact</div>
-      </div>
-      <div class="prog-line"><div class="prog-line-fill" id="line2"></div></div>
-      <div class="prog-step">
-        <div class="prog-dot" id="dot3">4</div>
-        <div class="prog-label" id="lbl3">Photo</div>
-      </div>
-    </div>
-  </header>
-
-  <!-- FORM CARD -->
-  <div class="form-card" id="formCard">
-    <div class="card-top-bar"></div>
-    <div class="card-inner">
-
-      <!-- STEP 1: Member Type -->
-      <div id="step1" class="step-content">
-        <div class="step-title">Who Are You?</div>
-        <p class="step-desc">Select the category that best describes your relationship with us.</p>
-
-        <div class="member-types">
-          <button class="member-type-btn" onclick="selectType(this,'new_convert')" type="button">
-            <div class="type-icon">✦</div>
-            <div>
-              <div class="type-name">New Convert</div>
-              <div class="type-desc">I have recently given my life to Christ and this is my first time joining a church community.</div>
-            </div>
-          </button>
-          <button class="member-type-btn" onclick="selectType(this,'new_member')" type="button">
-            <div class="type-icon">☩</div>
-            <div>
-              <div class="type-name">New Member</div>
-              <div class="type-desc">I am a believer transferring from another church and would like to become a member here.</div>
-            </div>
-          </button>
-          <button class="member-type-btn" onclick="selectType(this,'existing_member')" type="button">
-            <div class="type-icon">♱</div>
-            <div>
-              <div class="type-name">Existing Member</div>
-              <div class="type-desc">I am already a member and would like to update or complete my profile in our records.</div>
-            </div>
-          </button>
-        </div>
-
-        <div class="btn-row">
-          <div></div>
-          <button class="btn btn-gold" onclick="goStep(2)" type="button">Continue &rarr;</button>
-        </div>
-      </div>
-
-      <!-- STEP 2: Personal Info -->
-      <div id="step2" class="step-content" style="display:none">
-        <div class="step-title">Personal Details</div>
-        <p class="step-desc">Your bio data — held with care and confidentiality.</p>
-
-        <div class="section-heading"><span>Full Name</span></div>
-        <div class="field-row">
-          <div class="field" id="f-title">
-            <label>Title</label>
-            <select name="title">
-              <option value="">Select</option>
-              <option>Mr.</option><option>Mrs.</option><option>Miss</option>
-              <option>Dr.</option><option>Prof.</option><option>Rev.</option><option>Pastor</option>
-            </select>
-          </div>
-          <div class="field" id="f-firstname">
-            <label>First Name <span class="req">*</span></label>
-            <input type="text" name="firstname" placeholder="Emmanuel">
-            <div class="field-error">Please enter first name</div>
-          </div>
-        </div>
-        <div class="field-row">
-          <div class="field" id="f-middlename">
-            <label>Middle Name</label>
-            <input type="text" name="middlename" placeholder="Optional">
-          </div>
-          <div class="field" id="f-surname">
-            <label>Surname <span class="req">*</span></label>
-            <input type="text" name="surname" placeholder="Asante">
-            <div class="field-error">Please enter surname</div>
-          </div>
-        </div>
-
-        <div class="section-heading"><span>Identity</span></div>
-        <div class="field-row triple">
-          <div class="field" id="f-dob">
-            <label>Date of Birth <span class="req">*</span></label>
-            <input type="date" name="dob">
-            <div class="field-error">Required</div>
-          </div>
-          <div class="field" id="f-gender">
-            <label>Gender <span class="req">*</span></label>
-            <select name="gender">
-              <option value="">Select</option>
-              <option>Male</option><option>Female</option>
-            </select>
-            <div class="field-error">Required</div>
-          </div>
-          <div class="field">
-            <label>Marital Status</label>
-            <select name="marital">
-              <option value="">Select</option>
-              <option>Single</option><option>Married</option>
-              <option>Widowed</option><option>Divorced</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="field-row">
-          <div class="field">
-            <label>Nationality</label>
-            <input type="text" name="nationality" placeholder="Ghanaian">
-          </div>
-          <div class="field">
-            <label>Occupation / Profession</label>
-            <input type="text" name="occupation" placeholder="e.g. Teacher, Engineer">
-          </div>
-        </div>
-
-        <div class="section-heading" id="salvation-section" style="display:none"><span>Faith Journey</span></div>
-        <div class="field-row" id="salvation-fields" style="display:none">
-          <div class="field">
-            <label>Date of Salvation</label>
-            <input type="date" name="salvation_date">
-            <div class="field-note">When did you give your life to Christ?</div>
-          </div>
-          <div class="field">
-            <label>Baptism Status</label>
-            <select name="baptism">
-              <option value="">Select</option>
-              <option>Not yet baptised</option>
-              <option>Baptised (Water)</option>
-              <option>Baptised (Water &amp; Spirit)</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="field-row single" id="prev-church-row" style="display:none">
-          <div class="field">
-            <label>Previous Church</label>
-            <input type="text" name="prev_church" placeholder="Name of your former church">
-          </div>
-        </div>
-
-        <div class="btn-row">
-          <button class="btn btn-ghost" onclick="goStep(1)" type="button">&larr; Back</button>
-          <button class="btn btn-gold" onclick="goStep(3)" type="button">Continue &rarr;</button>
-        </div>
-      </div>
-
-      <!-- STEP 3: Contact -->
-      <div id="step3" class="step-content" style="display:none">
-        <div class="step-title">Contact & Location</div>
-        <p class="step-desc">How may we reach you and where do you reside?</p>
-
-        <div class="section-heading"><span>Communication</span></div>
-        <div class="field-row">
-          <div class="field" id="f-phone">
-            <label>Phone Number <span class="req">*</span></label>
-            <input type="tel" name="phone" placeholder="+233 24 000 0000">
-            <div class="field-error">Please enter phone number</div>
-          </div>
-          <div class="field">
-            <label>Alternate Phone</label>
-            <input type="tel" name="phone2" placeholder="+233 50 000 0000">
-          </div>
-        </div>
-        <div class="field-row single">
-          <div class="field">
-            <label>Email Address</label>
-            <input type="email" name="email" placeholder="you@example.com">
-          </div>
-        </div>
-
-        <div class="section-heading"><span>Residence</span></div>
-        <div class="field-row">
-          <div class="field" id="f-place-live">
-            <label>Place You Live <span class="req">*</span></label>
-            <input type="text" name="place_live" placeholder="e.g. Adum, Bantama, Suame">
-            <div class="field-error">Please enter where you live</div>
-          </div>
-          <div class="field" id="f-house-number">
-            <label>House Number <span class="req">*</span></label>
-            <input type="text" name="house_number" placeholder="e.g. No. 14, Block C">
-            <div class="field-error">Please enter your house number</div>
-          </div>
-        </div>
-        <div class="field-row single">
-          <div class="field" id="f-landmark">
-            <label>Direction / Nearest Landmark <span class="req">*</span></label>
-            <input type="text" name="landmark" placeholder="e.g. Behind Kejetia Market, Opposite Melcom, Near Ashanti Mall">
-            <div class="field-error">Please provide a direction or landmark</div>
-          </div>
-        </div>
-        <div class="field-row">
-          <div class="field">
-            <label>Region</label>
-            <select name="region">
-              <option value="">Select</option>
-              <option>Ashanti</option><option>Greater Accra</option><option>Central</option>
-              <option>Western</option><option>Eastern</option><option>Northern</option>
-              <option>Upper East</option><option>Upper West</option><option>Volta</option>
-              <option>Brong-Ahafo</option><option>Bono East</option><option>Ahafo</option>
-              <option>Savannah</option><option>North East</option><option>Oti</option>
-              <option>Western North</option>
-            </select>
-          </div>
-          <div class="field">
-            <label>Digital Address (Ghana Post GPS)</label>
-            <input type="text" name="digital_address" placeholder="e.g. AK-123-4567">
-          </div>
-        </div>
-
-        <div class="section-heading"><span>Emergency Contact</span></div>
-        <div class="field-row">
-          <div class="field">
-            <label>Next of Kin Name</label>
-            <input type="text" name="kin_name" placeholder="Full name">
-          </div>
-          <div class="field">
-            <label>Relationship</label>
-            <select name="kin_rel">
-              <option value="">Select</option>
-              <option>Spouse</option><option>Parent</option><option>Sibling</option>
-              <option>Child</option><option>Friend</option><option>Other</option>
-            </select>
-          </div>
-        </div>
-        <div class="field-row single">
-          <div class="field">
-            <label>Next of Kin Phone</label>
-            <input type="tel" name="kin_phone" placeholder="+233 24 000 0000">
-          </div>
-        </div>
-
-        <div class="section-heading"><span>Church Life</span></div>
-        <div class="field-row">
-          <div class="field">
-            <label>Ministry / Department Interest</label>
-            <select name="ministry">
-              <option value="">Select</option>
-              <option>Worship & Praise</option><option>Children's Ministry</option>
-              <option>Youth Ministry</option><option>Ushering & Protocol</option>
-              <option>Prayer & Intercession</option><option>Media & Technology</option>
-              <option>Welfare & Outreach</option><option>Drama & Creative Arts</option>
-              <option>Choir</option><option>Not sure yet</option>
-            </select>
-          </div>
-          <div class="field">
-            <label>How Did You Find Us?</label>
-            <select name="referral">
-              <option value="">Select</option>
-              <option>Friend / Family</option><option>Social Media</option>
-              <option>Radio / TV</option><option>Walked In</option>
-              <option>Crusade / Event</option><option>Online Search</option>
-              <option>Other</option>
-            </select>
-          </div>
-        </div>
-        <div class="field-row single">
-          <div class="field">
-            <label>Prayer Request (Optional)</label>
-            <textarea name="prayer" placeholder="Share a prayer request with us…"></textarea>
-          </div>
-        </div>
-
-        <div class="btn-row">
-          <button class="btn btn-ghost" onclick="goStep(2)" type="button">&larr; Back</button>
-          <button class="btn btn-gold" onclick="goStep(4)" type="button">Continue &rarr;</button>
-        </div>
-      </div>
-
-      <!-- STEP 4: Photo -->
-      <div id="step4" class="step-content" style="display:none">
-        <div class="step-title">Profile Photo</div>
-        <p class="step-desc">A clear face photograph helps us know and remember you.</p>
-
-        <div class="photo-zone">
-
-          <!-- Placeholder state -->
-          <div id="photoPlaceholderState">
-            <div class="photo-preview-ring">
-              <div class="photo-placeholder">
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
-                  <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
-                </svg>
-                <span style="font-family:'Cinzel',serif;font-size:0.6rem;letter-spacing:.1em;opacity:.5">No Photo</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Captured photo state -->
-          <div id="capturedState" class="photo-captured-state" style="display:none">
-            <div class="captured-img-ring" id="capturedRing">
-              <img id="capturedImg" src="" alt="Profile photo">
-            </div>
-            <div class="summary-badge">
-              <span>✓</span> Photo captured
-            </div>
-          </div>
-
-          <!-- Camera view -->
-          <div class="camera-view" id="cameraView">
-            <video id="videoEl" autoplay playsinline muted></video>
-            <p style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:.9rem;color:var(--cream-dim);text-align:center">
-              Position your face within the circle, then capture.
-            </p>
-          </div>
-
-          <canvas id="photoCanvas"></canvas>
-
-          <div class="photo-controls">
-            <button class="btn btn-outline" id="btnStartCamera" onclick="startCamera()" type="button">
-              &#9654; Open Camera
-            </button>
-            <button class="btn btn-gold" id="btnCapture" onclick="capturePhoto()" type="button" style="display:none">
-              &#11044; Capture
-            </button>
-            <button class="btn btn-ghost" id="btnRetake" onclick="retakePhoto()" type="button" style="display:none">
-              ↺ Retake
-            </button>
-            <label class="btn btn-ghost" style="cursor:pointer">
-              &#8682; Upload Photo
-              <input type="file" accept="image/*" id="photoUpload" style="display:none" onchange="handleUpload(event)">
-            </label>
-          </div>
-
-          <p class="field-note" style="text-align:center;margin-top:0.5rem">
-            Photo is optional but greatly appreciated. Passport-style, clear face recommended.
-          </p>
-        </div>
-
-        <div class="btn-row">
-          <button class="btn btn-ghost" onclick="goStep(3)" type="button">&larr; Back</button>
-          <button class="btn btn-gold" onclick="submitForm()" type="button">Submit Registration ✦</button>
-        </div>
-      </div>
-
-      <!-- SUCCESS SCREEN -->
-      <div class="success-screen" id="successScreen">
-        <div class="success-ring">
-          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-            <polyline points="20 6 9 17 4 12"/>
-          </svg>
-        </div>
-        <div class="success-title">You Are Registered</div>
-        <div class="gold-line" style="width:60px"></div>
-        <p class="success-verse">"I was glad when they said unto me, let us go into the house of the Lord."</p>
-        <p class="success-ref">Psalm 122:1</p>
-        <div id="memberBadge" class="summary-badge" style="margin-top:0.5rem"></div>
-
-        <div class="export-btn-wrap">
-          <button class="btn btn-gold" onclick="openPrintCard()" type="button">&#9646; Print Member Card</button>
-          <button class="btn btn-outline" onclick="registerAnother()" type="button">Register Another</button>
-          <button class="btn btn-ghost" onclick="exportRecords()" type="button">&#8618; Export Records (JSON)</button>
-          <button class="btn btn-ghost" onclick="clearAllData()" type="button" style="border-color:rgba(192,57,43,0.3);color:rgba(192,57,43,0.7)">&#9249; Clear All Data</button>
-        </div>
-      </div>
-
-    </div><!-- card-inner -->
-  </div><!-- form-card -->
-
-  <div class="site-footer">
-    &ldquo;You are no longer strangers and foreigners, but fellow citizens with the saints.&rdquo; &mdash; Eph. 2:19
-  </div>
-
-</div>
-
 <div class="toast" id="toast"></div>
 
 <script>
-  // ═══════════════════════════════════════════════════════
-  //  GOOD JESUS MIRACLE CENTER — Registration System
-  //  Fully debugged + localStorage persistence
-  // ═══════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════
+//  GJMC REGISTRATION PORTAL v3
+//  USB camera · Front/Back · CSV · Excel · Persistence
+// ════════════════════════════════════════════════════════
+var SHEETS_URL = '';
+var currentStep = 1, memberType = '', photoData = '';
+var records = [], stream = null, lastRecord = null;
+var cameras = [], facingMode = 'user';
+var isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
 
-  // ── CONFIG ──────────────────────────────────────────────
-  let SHEETS_URL = '';
+// BOOT
+(function(){
+  try { SHEETS_URL = localStorage.getItem('gjmc_sheets_url') || ''; } catch(e){}
+  if(SHEETS_URL){ document.getElementById('sheetsBtn').classList.add('sheets-connected'); document.getElementById('sheetsBtn').textContent = '\u2746 Sheets Connected'; }
+  try { var s=localStorage.getItem('gjmc_records'); if(s){ records=JSON.parse(s); updateCount(); }} catch(e){ records=[]; }
+  try { var u=localStorage.getItem('gjmc_sheets_url'); if(u) document.getElementById('sheetsUrl').value=u; } catch(e){}
+})();
 
-  // ── STATE ────────────────────────────────────────────────
-  let currentStep = 1;
-  let memberType  = '';
-  let capturedPhotoData = '';
-  let records     = [];
-  let stream      = null;
-  let lastRecord  = null;
-
-  // ── BOOT: restore persisted data ─────────────────────────
-  (function boot() {
-    // Restore Google Sheets URL
-    try { SHEETS_URL = localStorage.getItem('gjmc_sheets_url') || ''; } catch(e) {}
-    if (SHEETS_URL) {
-      document.getElementById('sheetsBtn').classList.add('sheets-connected');
-      document.getElementById('sheetsBtn').textContent = '✦ Sheets Connected';
-    }
-
-    // Restore saved records
-    try {
-      const saved = localStorage.getItem('gjmc_records');
-      if (saved) {
-        records = JSON.parse(saved);
-        updateRecordCount();
-      }
-    } catch(e) { records = []; }
-
-    // Restore sheets URL input
-    try {
-      const url = localStorage.getItem('gjmc_sheets_url');
-      if (url) document.getElementById('sheetsUrl').value = url;
-    } catch(e) {}
-  })();
-
-  // ── PARTICLES ────────────────────────────────────────────
-  (function initParticles() {
-    const pc = document.getElementById('particles');
-    for (let i = 0; i < 18; i++) {
-      const p = document.createElement('div');
-      p.className = 'particle';
-      p.style.left              = Math.random() * 100 + '%';
-      p.style.bottom            = '-10px';
-      p.style.animationDuration = (8 + Math.random() * 14) + 's';
-      p.style.animationDelay    = (Math.random() * 12) + 's';
-      const sz = (1 + Math.random() * 2) + 'px';
-      p.style.width = p.style.height = sz;
-      p.style.opacity = 0.4 + Math.random() * 0.4;
-      pc.appendChild(p);
-    }
-  })();
-
-  // ── MEMBER TYPE ──────────────────────────────────────────
-  function selectType(btn, type) {
-    document.querySelectorAll('.member-type-btn').forEach(b => b.classList.remove('selected'));
-    btn.classList.add('selected');
-    memberType = type;
-    const isConvert   = type === 'new_convert';
-    const isNewMember = type === 'new_member';
-    document.getElementById('salvation-section').style.display = isConvert   ? '' : 'none';
-    document.getElementById('salvation-fields').style.display  = isConvert   ? '' : 'none';
-    document.getElementById('prev-church-row').style.display   = isNewMember ? '' : 'none';
+// PARTICLES
+(function(){
+  var pc=document.getElementById('particles');
+  for(var i=0;i<18;i++){
+    var p=document.createElement('div'); p.className='particle';
+    p.style.left=Math.random()*100+'%'; p.style.bottom='-10px';
+    p.style.animationDuration=(8+Math.random()*14)+'s';
+    p.style.animationDelay=(Math.random()*12)+'s';
+    var sz=(1+Math.random()*2)+'px'; p.style.width=p.style.height=sz;
+    p.style.opacity=0.4+Math.random()*0.4; pc.appendChild(p);
   }
+})();
 
-  // ── STEP NAVIGATION ──────────────────────────────────────
-  function goStep(n) {
-    // Forward validation
-    if (n > currentStep) {
-      if (currentStep === 1 && !memberType) {
-        showToast('Please select your membership type to continue.');
-        return;
-      }
-      if (currentStep === 2) {
-        let ok = true;
-        [['f-firstname','firstname'], ['f-surname','surname'], ['f-dob','dob'], ['f-gender','gender']]
-          .forEach(([id, name]) => {
-            const fld = document.getElementById(id);
-            const inp = document.querySelector('[name=' + name + ']');
-            if (!inp || !inp.value.trim()) { fld.classList.add('invalid'); ok = false; }
-            else fld.classList.remove('invalid');
-          });
-        if (!ok) { showToast('Please fill all required fields.'); return; }
-      }
-      if (currentStep === 3) {
-        const ph  = document.querySelector('[name=phone]');
-        const fph = document.getElementById('f-phone');
-        if (!ph.value.trim()) { fph.classList.add('invalid'); showToast('Phone number is required.'); return; }
-        else fph.classList.remove('invalid');
+// MEMBER TYPE
+function selectType(btn, type){
+  document.querySelectorAll('.member-type-btn').forEach(function(b){ b.classList.remove('selected'); });
+  btn.classList.add('selected'); memberType=type;
+  document.getElementById('salvation-section').style.display = type==='new_convert' ? '' : 'none';
+  document.getElementById('salvation-fields').style.display  = type==='new_convert' ? '' : 'none';
+  document.getElementById('prev-church-row').style.display   = type==='new_member'  ? '' : 'none';
+}
 
-        let locOk = true;
-        [['f-place-live','place_live'], ['f-house-number','house_number'], ['f-landmark','landmark']]
-          .forEach(([id, name]) => {
-            const fld = document.getElementById(id);
-            const inp = document.querySelector('[name=' + name + ']');
-            if (!inp || !inp.value.trim()) { fld.classList.add('invalid'); locOk = false; }
-            else fld.classList.remove('invalid');
-          });
-        if (!locOk) { showToast('Please fill all required location fields.'); return; }
-      }
-    }
-
-    // Stop camera if leaving step 4
-    if (currentStep === 4 && n !== 4) stopCamera();
-
-    // Hide current step (safe null-check — step 0 doesn't exist in DOM)
-    const prevEl = document.getElementById('step' + currentStep);
-    if (prevEl) prevEl.style.display = 'none';
-
-    currentStep = n;
-
-    // Show next step with re-trigger animation
-    const nextEl = document.getElementById('step' + n);
-    if (nextEl) {
-      nextEl.style.display     = '';
-      nextEl.style.animation   = 'none';
-      void nextEl.offsetHeight; // reflow
-      nextEl.style.animation   = '';
-    }
-
-    updateProgress(n);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-
-  function updateProgress(step) {
-    for (let i = 0; i < 4; i++) {
-      const dot  = document.getElementById('dot'  + i);
-      const lbl  = document.getElementById('lbl'  + i);
-      const line = document.getElementById('line' + i);
-      if (!dot) continue;
-      dot.classList.remove('active', 'done');
-      if (lbl) lbl.classList.remove('active');
-      if (i < step - 1) {
-        dot.classList.add('done');
-        dot.innerHTML = '✓';
-      } else if (i === step - 1) {
-        dot.classList.add('active');
-        dot.innerHTML = i + 1;
-        if (lbl) lbl.classList.add('active');
-      } else {
-        dot.innerHTML = i + 1;
-      }
-      if (line) line.classList.toggle('filled', i < step - 1);
-    }
-  }
-
-  // ── CAMERA ───────────────────────────────────────────────
-  async function startCamera() {
-    try {
-      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: 400, height: 400 } });
-      document.getElementById('videoEl').srcObject = stream;
-      document.getElementById('cameraView').classList.add('active');
-      document.getElementById('btnStartCamera').style.display = 'none';
-      document.getElementById('btnCapture').style.display     = '';
-      document.getElementById('photoPlaceholderState').style.display = 'none';
-    } catch (e) {
-      showToast('Camera access denied — please upload a photo instead.');
-    }
-  }
-
-  function capturePhoto() {
-    const video  = document.getElementById('videoEl');
-    const canvas = document.getElementById('photoCanvas');
-    canvas.width = 400; canvas.height = 400;
-    canvas.getContext('2d').drawImage(video, 0, 0, 400, 400);
-    capturedPhotoData = canvas.toDataURL('image/jpeg', 0.85);
-    showCaptured();
-    stopCamera();
-  }
-
-  function stopCamera() {
-    if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
-    document.getElementById('cameraView').classList.remove('active');
-  }
-
-  function retakePhoto() {
-    capturedPhotoData = '';
-    document.getElementById('capturedState').style.display       = 'none';
-    document.getElementById('capturedRing').style.display        = 'none';
-    document.getElementById('photoPlaceholderState').style.display = '';
-    document.getElementById('btnStartCamera').style.display      = '';
-    document.getElementById('btnCapture').style.display          = 'none';
-    document.getElementById('btnRetake').style.display           = 'none';
-    // Reset file input so the same file can be re-selected
-    const fi = document.getElementById('photoUpload');
-    if (fi) fi.value = '';
-  }
-
-  function handleUpload(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = ev => { capturedPhotoData = ev.target.result; showCaptured(); };
-    reader.readAsDataURL(file);
-  }
-
-  function showCaptured() {
-    document.getElementById('capturedImg').src = capturedPhotoData;
-    document.getElementById('capturedRing').style.display        = '';
-    document.getElementById('capturedState').style.display       = 'flex';
-    document.getElementById('photoPlaceholderState').style.display = 'none';
-    document.getElementById('btnStartCamera').style.display      = 'none';
-    document.getElementById('btnCapture').style.display          = 'none';
-    document.getElementById('btnRetake').style.display           = '';
-  }
-
-  // ── DATA COLLECTION ──────────────────────────────────────
-  function collectData() {
-    const fields = [
-      'title','firstname','middlename','surname','dob','gender','marital',
-      'nationality','occupation','salvation_date','baptism','prev_church',
-      'phone','phone2','email','place_live','house_number','landmark',
-      'region','digital_address','kin_name','kin_rel','kin_phone',
-      'ministry','referral','prayer'
-    ];
-    const data = {
-      id: 'GJMC-' + Date.now(),
-      member_type: memberType,
-      photo: capturedPhotoData,
-      timestamp: new Date().toISOString()
-    };
-    fields.forEach(f => {
-      const el = document.querySelector('[name=' + f + ']');
-      if (el) data[f] = el.value;
-    });
-    return data;
-  }
-
-  // ── PERSIST TO localStorage ───────────────────────────────
-  function saveRecords() {
-    try {
-      localStorage.setItem('gjmc_records', JSON.stringify(records));
-    } catch (e) {
-      showToast('Storage limit reached — export your records to free space.');
-    }
-  }
-
-  // ── SUBMIT ───────────────────────────────────────────────
-  function submitForm() {
-    const data = collectData();
-    records.push(data);
-    lastRecord = data;
-    saveRecords();          // ← persist immediately
-    updateRecordCount();
-    stopCamera();
-
-    // Transition to success screen
-    const step4 = document.getElementById('step4');
-    if (step4) step4.style.display = 'none';
-    document.getElementById('progressTrack').style.display = 'none';
-    document.getElementById('successScreen').classList.add('active');
-
-    // Personalise the badge
-    const typeLabels = { new_convert: 'New Convert', new_member: 'New Member', existing_member: 'Existing Member' };
-    const name = [data.title, data.firstname, data.surname].filter(Boolean).join(' ');
-    document.getElementById('memberBadge').innerHTML =
-      '&#9670; ' + (name || 'Member') + ' &mdash; ' + (typeLabels[memberType] || memberType);
-
-    showToast('Registration saved ✦');
-
-    // Push to Google Sheets if configured
-    if (SHEETS_URL) sendToSheets(data);
-  }
-
-  // ── REGISTER ANOTHER (full clean reset → homepage step 1) ─
-  function registerAnother() {
-    // 1. Clear volatile state
-    memberType        = '';
-    capturedPhotoData = '';
-    lastRecord        = null;
-
-    // 2. Reset all form fields
-    document.querySelectorAll('input:not([type=file]), textarea')
-      .forEach(el => el.value = '');
-    document.querySelectorAll('select')
-      .forEach(el => el.selectedIndex = 0);
-    document.querySelectorAll('.member-type-btn')
-      .forEach(b => b.classList.remove('selected'));
-    document.querySelectorAll('.field.invalid')
-      .forEach(f => f.classList.remove('invalid'));
-
-    // 3. Hide conditional sections
-    ['salvation-section', 'salvation-fields', 'prev-church-row']
-      .forEach(id => document.getElementById(id).style.display = 'none');
-
-    // 4. Reset photo capture UI
-    retakePhoto();
-
-    // 5. Hide success screen
-    document.getElementById('successScreen').classList.remove('active');
-
-    // 6. Hide ALL numbered steps (defensive)
-    [1, 2, 3, 4].forEach(n => {
-      const el = document.getElementById('step' + n);
-      if (el) el.style.display = 'none';
-    });
-
-    // 7. Reveal progress track and go to step 1 (the homepage)
-    document.getElementById('progressTrack').style.display = '';
-    currentStep = 1;
-    const step1 = document.getElementById('step1');
-    step1.style.display   = '';
-    step1.style.animation = 'none';
-    void step1.offsetHeight;
-    step1.style.animation = '';
-
-    updateProgress(1);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-
-  // ── GOOGLE SHEETS ─────────────────────────────────────────
-  async function sendToSheets(data) {
-    const payload = { ...data };
-    if (payload.photo && payload.photo.length > 100) payload.photo = 'YES';
-    try {
-      await fetch(SHEETS_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+// STEP NAVIGATION
+function goStep(n){
+  if(n > currentStep){
+    if(currentStep===1 && !memberType){ toast('Please select your membership type.'); return; }
+    if(currentStep===2){
+      var ok=true;
+      [['f-firstname','firstname'],['f-surname','surname'],['f-dob','dob'],['f-gender','gender']].forEach(function(p){
+        var fld=document.getElementById(p[0]), inp=document.querySelector('[name='+p[1]+']');
+        if(!inp||!inp.value.trim()){ fld.classList.add('invalid'); ok=false; } else fld.classList.remove('invalid');
       });
-      showToast('✦ Synced to Google Sheets');
-    } catch (err) {
-      showToast('Sheets sync failed — data is saved locally.');
+      if(!ok){ toast('Please fill all required fields.'); return; }
+    }
+    if(currentStep===3){
+      var ph=document.querySelector('[name=phone]'), fph=document.getElementById('f-phone');
+      if(!ph.value.trim()){ fph.classList.add('invalid'); toast('Phone number is required.'); return; } else fph.classList.remove('invalid');
+      var lok=true;
+      [['f-place-live','place_live'],['f-house-number','house_number'],['f-landmark','landmark']].forEach(function(p){
+        var fld=document.getElementById(p[0]), inp=document.querySelector('[name='+p[1]+']');
+        if(!inp||!inp.value.trim()){ fld.classList.add('invalid'); lok=false; } else fld.classList.remove('invalid');
+      });
+      if(!lok){ toast('Please fill all required location fields.'); return; }
     }
   }
+  if(currentStep===4 && n!==4) stopCam();
+  if(n===4) loadCameras();
+  var prev=document.getElementById('step'+currentStep); if(prev) prev.style.display='none';
+  currentStep=n;
+  var next=document.getElementById('step'+n);
+  if(next){ next.style.display=''; next.style.animation='none'; void next.offsetHeight; next.style.animation=''; }
+  updateProg(n); window.scrollTo({top:0,behavior:'smooth'});
+}
 
-  // ── SHEETS MODAL ─────────────────────────────────────────
-  function openSheetsModal() {
-    document.getElementById('sheetsModal').classList.add('open');
-    if (SHEETS_URL) document.getElementById('sheetsUrl').value = SHEETS_URL;
+function updateProg(step){
+  for(var i=0;i<4;i++){
+    var dot=document.getElementById('dot'+i), lbl=document.getElementById('lbl'+i), line=document.getElementById('line'+i);
+    if(!dot) continue;
+    dot.classList.remove('active','done'); if(lbl) lbl.classList.remove('active');
+    if(i<step-1){ dot.classList.add('done'); dot.innerHTML='&#10003;'; }
+    else if(i===step-1){ dot.classList.add('active'); dot.innerHTML=i+1; if(lbl) lbl.classList.add('active'); }
+    else dot.innerHTML=i+1;
+    if(line) line.classList.toggle('filled', i<step-1);
   }
-  function closeSheetsModal() {
-    document.getElementById('sheetsModal').classList.remove('open');
-  }
-  function saveSheetUrl() {
-    const url    = document.getElementById('sheetsUrl').value.trim();
-    const status = document.getElementById('sheetsStatus');
-    if (!url) {
-      status.className = 'sheets-status err';
-      status.textContent = 'Please enter a valid URL.';
-      return;
-    }
-    if (!url.includes('script.google.com')) {
-      status.className = 'sheets-status err';
-      status.textContent = 'URL must be a Google Apps Script Web App URL.';
-      return;
-    }
-    SHEETS_URL = url;
-    try { localStorage.setItem('gjmc_sheets_url', url); } catch(e) {}
-    status.className = 'sheets-status ok';
-    status.textContent = '✦ Connected — registrations will sync automatically.';
-    document.getElementById('sheetsBtn').classList.add('sheets-connected');
-    document.getElementById('sheetsBtn').textContent = '✦ Sheets Connected';
-  }
-  function copyScript() {
-    const code = document.getElementById('appsScriptCode').textContent;
-    navigator.clipboard.writeText(code)
-      .then(() => showToast('Apps Script copied to clipboard ✦'))
-      .catch(() => showToast('Copy failed — please select and copy manually.'));
-  }
-  document.getElementById('sheetsModal').addEventListener('click', function(e) {
-    if (e.target === this) closeSheetsModal();
-  });
+}
 
-  // ── PRINT CARD ────────────────────────────────────────────
-  function openPrintCard() {
-    if (!lastRecord) return;
-    const d = lastRecord;
-    const typeLabels = { new_convert: 'New Convert', new_member: 'New Member', existing_member: 'Existing Member' };
-    const name     = [d.title, d.firstname, d.middlename, d.surname].filter(Boolean).join(' ');
-    const initials = ((d.firstname || '?')[0] + (d.surname || '?')[0]).toUpperCase();
-
-    document.getElementById('cardName').textContent     = name || 'Member';
-    document.getElementById('cardTypePill').textContent = typeLabels[d.member_type] || d.member_type;
-    document.getElementById('cardDob').textContent      = d.dob        || '—';
-    document.getElementById('cardGender').textContent   = d.gender     || '—';
-    document.getElementById('cardPhone').textContent    = d.phone      || '—';
-    document.getElementById('cardOccupation').textContent = d.occupation || '—';
-    document.getElementById('cardMinistry').textContent = d.ministry   || '—';
-    document.getElementById('cardArea').textContent     = [d.house_number, d.place_live, d.region].filter(Boolean).join(', ') || '—';
-    document.getElementById('cardId').textContent       = d.id;
-    document.getElementById('cardInitials').textContent = initials;
-    document.getElementById('cardDateJoined').textContent =
-      'Registered: ' + new Date(d.timestamp).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
-
-    const cardPhoto      = document.getElementById('cardPhoto');
-    const cardInitialsEl = document.getElementById('cardInitials');
-    if (d.photo) {
-      cardPhoto.src          = d.photo;
-      cardPhoto.style.display = 'block';
-      cardInitialsEl.style.display = 'none';
-    } else {
-      cardPhoto.style.display      = 'none';
-      cardInitialsEl.style.display = 'flex';
-    }
-
-    // Decorative barcode
-    const bc   = document.getElementById('cardBarcode');
-    bc.innerHTML = '';
-    const seed = d.id.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
-    for (let i = 0; i < 18; i++) {
-      const bar = document.createElement('div');
-      const h   = 6 + ((seed * (i + 3)) % 12);
-      bar.style.cssText = 'width:' + (i % 3 === 1 ? 2 : 1) + 'px;height:' + h + 'px;background:#09111e;border-radius:1px';
-      bc.appendChild(bar);
-    }
-
-    document.getElementById('printCard').classList.add('open');
-  }
-  function closePrintCard() {
-    document.getElementById('printCard').classList.remove('open');
-  }
-  document.getElementById('printCard').addEventListener('click', function(e) {
-    if (e.target === this) closePrintCard();
-  });
-
-  // ── EXPORT ───────────────────────────────────────────────
-  function exportRecords() {
-    if (records.length === 0) { showToast('No records to export yet.'); return; }
-    const exportData = records.map(r => {
-      const d = { ...r };
-      if (d.photo && d.photo.length > 100) d.photo = '[photo captured — not included in JSON]';
-      return d;
+// ── CAMERA ──────────────────────────────────────────────
+function loadCameras(){
+  var badge=document.getElementById('camBadge'), sel=document.getElementById('cameraSelect');
+  badge.textContent='Scanning\u2026'; badge.className='cam-badge';
+  navigator.mediaDevices.getUserMedia({video:true})
+    .then(function(t){ t.getTracks().forEach(function(x){ x.stop(); }); })
+    .catch(function(){})
+    .finally(function(){
+      navigator.mediaDevices.enumerateDevices().then(function(devs){
+        cameras = devs.filter(function(d){ return d.kind==='videoinput'; });
+        var prev=sel.value;
+        sel.innerHTML='<option value="">\u25BA Select a camera to begin</option>';
+        cameras.forEach(function(d,i){
+          var lbl=d.label||('Camera '+(i+1));
+          var prefix='';
+          if(/hikvision|logitech|usb|hd cam|webcam|external|uvc/i.test(lbl)) prefix='\uD83D\uDD0C ';
+          else if(/front|selfie|facetime/i.test(lbl)) prefix='\uD83E\uDD33 ';
+          else if(/back|rear|wide/i.test(lbl)) prefix='\uD83D\uDCF7 ';
+          var opt=document.createElement('option'); opt.value=d.deviceId; opt.textContent=prefix+lbl;
+          sel.appendChild(opt);
+        });
+        if(prev) sel.value=prev;
+        var n=cameras.length;
+        badge.textContent=n+' camera'+(n!==1?'s':'')+' detected';
+        badge.className='cam-badge'+(n>0?' live':'');
+        document.getElementById('btnFlip').style.display = isMobile ? '' : 'none';
+        updateCamLabel();
+      });
     });
-    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-    const a    = document.createElement('a');
-    a.href     = URL.createObjectURL(blob);
-    a.download = 'gjmc-members-' + new Date().toISOString().slice(0, 10) + '.json';
-    a.click();
-    URL.revokeObjectURL(a.href);
-  }
+}
 
-  // ── CLEAR ALL DATA ────────────────────────────────────────
-  function clearAllData() {
-    if (!confirm('Are you sure you want to delete ALL saved records? This cannot be undone.')) return;
-    records = [];
-    lastRecord = null;
-    try { localStorage.removeItem('gjmc_records'); } catch(e) {}
-    updateRecordCount();
-    showToast('All records cleared.');
-  }
+function refreshCameras(){
+  document.getElementById('camBadge').textContent='Refreshing\u2026';
+  loadCameras();
+  setTimeout(function(){
+    document.getElementById('camBadge').className='cam-badge found';
+    toast(cameras.length+' camera'+(cameras.length!==1?'s':'')+' detected \u2746');
+  }, 1200);
+}
 
-  // ── UTILITIES ─────────────────────────────────────────────
-  function updateRecordCount() {
-    document.getElementById('recordCount').innerHTML =
-      'Records <span>' + records.length + '</span>';
-  }
+navigator.mediaDevices.addEventListener('devicechange', function(){ if(currentStep===4) loadCameras(); });
 
-  function showToast(msg) {
-    const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), 3400);
-  }
+function onCameraChange(){ updateCamLabel(); if(stream) startCamera(); }
+
+function updateCamLabel(){
+  var sel=document.getElementById('cameraSelect'), lbl=document.getElementById('camLabel');
+  if(!sel.value){ lbl.textContent='No camera selected'; return; }
+  var opt=sel.options[sel.selectedIndex];
+  lbl.textContent = opt ? opt.textContent.replace(/^[^\w\s]*/,'').trim() : '';
+}
+
+function flipCamera(){
+  facingMode = facingMode==='user' ? 'environment' : 'user';
+  document.getElementById('cameraSelect').value='';
+  if(stream) startCamera();
+  toast(facingMode==='user' ? 'Front camera' : 'Back camera');
+}
+
+function startCamera(){
+  stopCam();
+  var deviceId=document.getElementById('cameraSelect').value;
+  var constraints={video: deviceId
+    ? {deviceId:{exact:deviceId},width:{ideal:1280},height:{ideal:720}}
+    : {facingMode:facingMode,width:{ideal:1280},height:{ideal:720}}};
+  navigator.mediaDevices.getUserMedia(constraints).then(function(s){
+    stream=s;
+    document.getElementById('videoEl').srcObject=s;
+    document.getElementById('cameraView').classList.add('active');
+    document.getElementById('btnStartCamera').style.display='none';
+    document.getElementById('btnCapture').style.display='';
+    document.getElementById('photoPlaceholderState').style.display='none';
+    toast('Camera live \u2746');
+  }).catch(function(e){
+    var msg='Camera error: '+e.message;
+    if(e.name==='NotAllowedError') msg='Camera permission denied. Allow access and try again.';
+    if(e.name==='NotFoundError') msg='No camera found at selected source.';
+    toast(msg);
+  });
+}
+
+function stopCam(){
+  if(stream){ stream.getTracks().forEach(function(t){ t.stop(); }); stream=null; }
+  document.getElementById('cameraView').classList.remove('active');
+}
+
+function capturePhoto(){
+  var v=document.getElementById('videoEl'), c=document.getElementById('photoCanvas');
+  c.width=v.videoWidth||400; c.height=v.videoHeight||400;
+  c.getContext('2d').drawImage(v,0,0,c.width,c.height);
+  photoData=c.toDataURL('image/jpeg',0.88);
+  showCaptured(); stopCam(); toast('Photo captured \u2746');
+}
+
+function retakePhoto(){
+  photoData='';
+  document.getElementById('capturedState').style.display='none';
+  document.getElementById('capturedRing').style.display='none';
+  document.getElementById('photoPlaceholderState').style.display='';
+  document.getElementById('btnStartCamera').style.display='';
+  document.getElementById('btnCapture').style.display='none';
+  document.getElementById('btnRetake').style.display='none';
+  var fi=document.getElementById('photoUpload'); if(fi) fi.value='';
+}
+
+function handleUpload(e){
+  var f=e.target.files[0]; if(!f) return;
+  var r=new FileReader();
+  r.onload=function(ev){ photoData=ev.target.result; showCaptured(); };
+  r.readAsDataURL(f);
+}
+
+function showCaptured(){
+  document.getElementById('capturedImg').src=photoData;
+  document.getElementById('capturedRing').style.display='';
+  document.getElementById('capturedState').style.display='flex';
+  document.getElementById('photoPlaceholderState').style.display='none';
+  document.getElementById('btnStartCamera').style.display='none';
+  document.getElementById('btnCapture').style.display='none';
+  document.getElementById('btnRetake').style.display='';
+}
+
+// DATA
+function collectData(){
+  var fields=['title','firstname','middlename','surname','dob','gender','marital','nationality','occupation',
+    'salvation_date','baptism','prev_church','phone','phone2','email','place_live','house_number','landmark',
+    'region','digital_address','kin_name','kin_rel','kin_phone','ministry','referral','prayer'];
+  var data={id:'GJMC-'+Date.now(),member_type:memberType,photo:photoData,timestamp:new Date().toISOString()};
+  fields.forEach(function(f){ var el=document.querySelector('[name='+f+']'); if(el) data[f]=el.value; });
+  return data;
+}
+
+function persist(){
+  try{ localStorage.setItem('gjmc_records',JSON.stringify(records)); }
+  catch(e){ toast('Storage full \u2014 please export your records.'); }
+}
+
+// SUBMIT
+function submitForm(){
+  var data=collectData(); records.push(data); lastRecord=data;
+  persist(); updateCount(); stopCam();
+  document.getElementById('step4').style.display='none';
+  document.getElementById('progressTrack').style.display='none';
+  document.getElementById('successScreen').classList.add('active');
+  var tl={new_convert:'New Convert',new_member:'New Member',existing_member:'Existing Member'};
+  var name=[data.title,data.firstname,data.surname].filter(Boolean).join(' ');
+  document.getElementById('memberBadge').innerHTML='&#9670; '+(name||'Member')+' &mdash; '+(tl[memberType]||memberType);
+  toast('Registration saved \u2746');
+  if(SHEETS_URL) sendToSheets(data);
+}
+
+// REGISTER ANOTHER
+function registerAnother(){
+  memberType=''; photoData=''; lastRecord=null;
+  document.querySelectorAll('input:not([type=file]),textarea').forEach(function(el){ el.value=''; });
+  document.querySelectorAll('select').forEach(function(el){ el.selectedIndex=0; });
+  document.querySelectorAll('.member-type-btn').forEach(function(b){ b.classList.remove('selected'); });
+  document.querySelectorAll('.field.invalid').forEach(function(f){ f.classList.remove('invalid'); });
+  ['salvation-section','salvation-fields','prev-church-row'].forEach(function(id){ document.getElementById(id).style.display='none'; });
+  retakePhoto();
+  document.getElementById('successScreen').classList.remove('active');
+  [1,2,3,4].forEach(function(n){ var el=document.getElementById('step'+n); if(el) el.style.display='none'; });
+  document.getElementById('progressTrack').style.display='';
+  currentStep=1;
+  var s1=document.getElementById('step1'); s1.style.display=''; s1.style.animation='none'; void s1.offsetHeight; s1.style.animation='';
+  updateProg(1); window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// SHEETS
+function sendToSheets(data){
+  var p=Object.assign({},data); if(p.photo&&p.photo.length>100) p.photo='YES';
+  fetch(SHEETS_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(p)})
+    .then(function(){ toast('\u2746 Synced to Google Sheets'); })
+    .catch(function(){ toast('Sheets sync failed \u2014 data saved locally.'); });
+}
+function openSheetsModal(){ document.getElementById('sheetsModal').classList.add('open'); if(SHEETS_URL) document.getElementById('sheetsUrl').value=SHEETS_URL; }
+function closeSheetsModal(){ document.getElementById('sheetsModal').classList.remove('open'); }
+function saveSheetUrl(){
+  var url=document.getElementById('sheetsUrl').value.trim(), st=document.getElementById('sheetsStatus');
+  if(!url){ st.className='sheets-status err'; st.textContent='Please enter a valid URL.'; return; }
+  if(!url.includes('script.google.com')){ st.className='sheets-status err'; st.textContent='Must be a Google Apps Script Web App URL.'; return; }
+  SHEETS_URL=url; try{ localStorage.setItem('gjmc_sheets_url',url); }catch(e){}
+  st.className='sheets-status ok'; st.textContent='\u2746 Connected.';
+  document.getElementById('sheetsBtn').classList.add('sheets-connected');
+  document.getElementById('sheetsBtn').textContent='\u2746 Sheets Connected';
+}
+function copyScript(){
+  var code=document.getElementById('appsScriptCode').textContent.replace('Copy','').trim();
+  navigator.clipboard.writeText(code).then(function(){ toast('Script copied \u2746'); }).catch(function(){ toast('Copy failed \u2014 select manually.'); });
+}
+document.getElementById('sheetsModal').addEventListener('click',function(e){ if(e.target===this) closeSheetsModal(); });
+
+// PRINT CARD
+function openPrintCard(){
+  if(!lastRecord) return; var d=lastRecord;
+  var tl={new_convert:'New Convert',new_member:'New Member',existing_member:'Existing Member'};
+  var name=[d.title,d.firstname,d.middlename,d.surname].filter(Boolean).join(' ');
+  var ini=((d.firstname||'?')[0]+(d.surname||'?')[0]).toUpperCase();
+  document.getElementById('cardName').textContent=name||'Member';
+  document.getElementById('cardTypePill').textContent=tl[d.member_type]||d.member_type;
+  document.getElementById('cardDob').textContent=d.dob||'\u2014';
+  document.getElementById('cardGender').textContent=d.gender||'\u2014';
+  document.getElementById('cardPhone').textContent=d.phone||'\u2014';
+  document.getElementById('cardOccupation').textContent=d.occupation||'\u2014';
+  document.getElementById('cardMinistry').textContent=d.ministry||'\u2014';
+  document.getElementById('cardArea').textContent=[d.house_number,d.place_live,d.region].filter(Boolean).join(', ')||'\u2014';
+  document.getElementById('cardId').textContent=d.id;
+  document.getElementById('cardInitials').textContent=ini;
+  document.getElementById('cardDateJoined').textContent='Registered: '+new Date(d.timestamp).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
+  var cp=document.getElementById('cardPhoto'),ci=document.getElementById('cardInitials');
+  if(d.photo&&d.photo.length>100){ cp.src=d.photo; cp.style.display='block'; ci.style.display='none'; }
+  else{ cp.style.display='none'; ci.style.display='flex'; }
+  var bc=document.getElementById('cardBarcode'); bc.innerHTML='';
+  var seed=d.id.split('').reduce(function(a,c){ return a+c.charCodeAt(0); },0);
+  for(var i=0;i<18;i++){ var bar=document.createElement('div'); var h=6+((seed*(i+3))%12); bar.style.cssText='width:'+(i%3===1?2:1)+'px;height:'+h+'px;background:#09111e;border-radius:1px'; bc.appendChild(bar); }
+  document.getElementById('printCard').classList.add('open');
+}
+function closePrintCard(){ document.getElementById('printCard').classList.remove('open'); }
+document.getElementById('printCard').addEventListener('click',function(e){ if(e.target===this) closePrintCard(); });
+
+// ── EXPORT: CSV ──────────────────────────────────────────
+function exportCSV(){
+  if(!records.length){ toast('No records to export yet.'); return; }
+  var hdr=['Member ID','Member Type','Title','First Name','Middle Name','Surname','Full Name',
+    'Date of Birth','Gender','Marital','Nationality','Occupation','Phone','Phone 2','Email',
+    'Place / Area','House Number','Landmark','Region','Digital Address',
+    'Ministry','Referral','Next of Kin','Kin Relation','Kin Phone',
+    'Salvation Date','Baptism','Prev Church','Prayer','Has Photo','Timestamp'];
+  function esc(v){ if(v==null) return ''; var s=String(v).replace(/"/g,'""'); return /[,"\n\r]/.test(s)?'"'+s+'"':s; }
+  var rows=records.map(function(r){
+    return [r.id,r.member_type,r.title,r.firstname,r.middlename||'',r.surname,
+      [r.title,r.firstname,r.surname].filter(Boolean).join(' '),
+      r.dob,r.gender,r.marital||'',r.nationality||'',r.occupation||'',
+      r.phone,r.phone2||'',r.email||'',r.place_live||'',r.house_number||'',
+      r.landmark||'',r.region||'',r.digital_address||'',r.ministry||'',
+      r.referral||'',r.kin_name||'',r.kin_rel||'',r.kin_phone||'',
+      r.salvation_date||'',r.baptism||'',r.prev_church||'',r.prayer||'',
+      r.photo&&r.photo.length>100?'Yes':'No',r.timestamp].map(esc).join(',');
+  });
+  var csv=[hdr.map(esc).join(',')].concat(rows).join('\r\n');
+  var blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='GJMC_Members_'+new Date().toISOString().slice(0,10)+'.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(a.href); toast('CSV exported \u2746');
+}
+
+// ── EXPORT: EXCEL ────────────────────────────────────────
+function exportExcel(){
+  if(!records.length){ toast('No records to export yet.'); return; }
+  if(typeof XLSX==='undefined'){ toast('Excel library not loaded. Check your internet connection.'); return; }
+  var wb=XLSX.utils.book_new();
+  var hdr=['Member ID','Member Type','Title','First Name','Middle Name','Surname','Full Name',
+    'Date of Birth','Gender','Marital','Nationality','Occupation','Phone','Phone 2','Email',
+    'Place / Area','House Number','Landmark','Region','Digital Address',
+    'Ministry','Referral','Next of Kin','Kin Relation','Kin Phone',
+    'Salvation Date','Baptism','Prev Church','Prayer','Has Photo','Registered On'];
+  var rows=records.map(function(r){
+    return [r.id,r.member_type,r.title,r.firstname,r.middlename||'',r.surname,
+      [r.title,r.firstname,r.surname].filter(Boolean).join(' '),
+      r.dob,r.gender,r.marital||'',r.nationality||'',r.occupation||'',
+      r.phone,r.phone2||'',r.email||'',r.place_live||'',r.house_number||'',
+      r.landmark||'',r.region||'',r.digital_address||'',r.ministry||'',
+      r.referral||'',r.kin_name||'',r.kin_rel||'',r.kin_phone||'',
+      r.salvation_date||'',r.baptism||'',r.prev_church||'',r.prayer||'',
+      r.photo&&r.photo.length>100?'Yes':'No',
+      r.timestamp?new Date(r.timestamp).toLocaleString('en-GB'):''];
+  });
+  var ws=XLSX.utils.aoa_to_sheet([hdr].concat(rows));
+  ws['!cols']=[{wch:22},{wch:16},{wch:7},{wch:14},{wch:12},{wch:16},{wch:24},{wch:13},{wch:9},
+    {wch:12},{wch:12},{wch:16},{wch:13},{wch:13},{wch:22},{wch:18},{wch:13},{wch:22},{wch:13},
+    {wch:16},{wch:22},{wch:14},{wch:16},{wch:12},{wch:13},{wch:13},{wch:16},{wch:18},{wch:22},{wch:9},{wch:20}];
+  XLSX.utils.book_append_sheet(wb,ws,'Member Register');
+  // Summary sheet
+  function tc(t){ return records.filter(function(r){ return r.member_type===t; }).length; }
+  var mm={}; records.forEach(function(r){ var m=r.ministry||'Not Assigned'; mm[m]=(mm[m]||0)+1; });
+  var sum=[
+    ['GOOD JESUS MIRACLE CENTER \u2014 SUMMARY',''],
+    ['Generated',new Date().toLocaleString('en-GB')],['',''],
+    ['METRIC','COUNT'],
+    ['Total Members',records.length],
+    ['New Converts',tc('new_convert')],
+    ['New Members',tc('new_member')],
+    ['Existing Members',tc('existing_member')],
+    ['Male',records.filter(function(r){ return r.gender==='Male'; }).length],
+    ['Female',records.filter(function(r){ return r.gender==='Female'; }).length],
+    ['With Photo',records.filter(function(r){ return r.photo&&r.photo.length>100; }).length],
+    ['',''],['BY MINISTRY','COUNT']
+  ];
+  Object.keys(mm).sort(function(a,b){ return mm[b]-mm[a]; }).forEach(function(m){ sum.push([m,mm[m]]); });
+  var ws2=XLSX.utils.aoa_to_sheet(sum); ws2['!cols']=[{wch:28},{wch:12}];
+  XLSX.utils.book_append_sheet(wb,ws2,'Summary');
+  XLSX.writeFile(wb,'GJMC_Members_'+new Date().toISOString().slice(0,10)+'.xlsx');
+  toast('Excel downloaded \u2746');
+}
+
+// ── EXPORT: JSON ─────────────────────────────────────────
+function exportJSON(){
+  if(!records.length){ toast('No records yet.'); return; }
+  var d=records.map(function(r){ var x=Object.assign({},r); if(x.photo&&x.photo.length>100) x.photo='[photo captured]'; return x; });
+  var blob=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='GJMC_Members_'+new Date().toISOString().slice(0,10)+'.json';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(a.href); toast('JSON exported \u2746');
+}
+
+function toggleExport(){ document.getElementById('exportMenu').classList.toggle('open'); }
+
+function clearAll(){
+  if(!confirm('Delete ALL saved records? This cannot be undone.')) return;
+  records=[]; lastRecord=null;
+  try{ localStorage.removeItem('gjmc_records'); }catch(e){}
+  updateCount(); toast('All records cleared.');
+}
+
+function updateCount(){
+  var n=records.length;
+  document.getElementById('recordCount').innerHTML='Records <span>'+n+'</span>';
+  document.getElementById('expCount').textContent=n;
+  document.getElementById('exportPanel').style.display=n>0?'':'none';
+}
+
+function toast(msg){
+  var t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); },3400);
+}
 </script>
 </body>
 </html>
